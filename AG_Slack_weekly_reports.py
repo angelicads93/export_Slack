@@ -17,41 +17,6 @@ key_wrd_text_show = inputs.key_wrd_text_show
 continue_analysis = inputs.continue_analysis
 
 
-class ExtractJson:
-    def __init__(self, path):
-        self.path = path
-    
-    def check_format_of_json_names(self, list_names):
-        """ Iterates over all the json files in a channel's directory, and returns a list with the names of the json files 
-        that have the correct format 'yyyy-mm-dd.json' """
-        list_names_dates = []
-        for i in range(len(list_names)):
-            match = re.match(r'(\d{4})(-)(\d{2})(-)(\d{2})(.)(json)',list_names[i])
-            if match!=None:
-                list_names_dates.append(list_names[i])
-        return list_names_dates
-
-    def messages_to_df(self):   
-        ##-- Initialize dataframe with first json file:
-        json_names = self.check_format_of_json_names(listdir(self.path))
-        df = pd.read_json(self.path+'/'+json_names[0])
-        df['json_name'] = json_names[0]
-        
-        ##-- Iterate over the remaining json files and concat info to df:
-        for file in json_names[1:]:
-            file_df = pd.read_json(self.path+'/'+file)
-            file_df['json_name'] = file
-            df = pd.concat([df,file_df], axis=0, ignore_index=True)
-        return df
-
-    def set_dtypes(self, df, column_dtypes):
-        column_names = list(df.columns)
-        for i in range(len(column_names)):
-            df[column_names[i]] = df[column_names[i]].astype(column_dtypes[i])
-        return df
-
-
-
 class CleanDataFrame():
     def __init__(self):
         pass
