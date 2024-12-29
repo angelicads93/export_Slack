@@ -265,13 +265,13 @@ class SlackCheckins():
         return answers
     
     
-    def create_empty_df_with_categories(self, columns_names, n_rows):
+    def create_empty_df_with_categories(self, n_rows):
         """
         Returns an empty dataframe with n_rows number of rows and columns:
-            project_name, working_on, progress_and_roadblocks, progress, roadblocks, plans_for_following_week, meetings, n_projects, index_
+            project_name, working_on, progress_and_roadblocks, progress, roadblocks, plans_for_following_week, meetings, projects_parsed, index_
         The column index_ is for internal development of the code. It can be remove at the end.
         """
-        columns=list(self.all_keywords)+['n_projects','index_']
+        columns=list(self.all_keywords)+['projects_parsed','index_']
         df = pd.DataFrame([[np.nan]*n_rows]*len(columns)).T
         df.columns = columns  
         df = df.astype('object')
@@ -286,7 +286,8 @@ class SlackCheckins():
         for i in list(df.index):
             text_i = df.at[i,'text']
             if sample_text_1 in text_i or sample_text_2 in text_i or sample_text_3 in text_i:
-                df.at[i, 'n_projects'] = 'sample'
+                df.loc[i, 'projects_parsed'] = 'sample'  
+        return df 
 
     def checkin_categories_to_df_1row(self, df, row_entry, text, indices_start_of_category, category_names, answers):   
         n_project = self.count_projects(category_names)   
@@ -316,12 +317,12 @@ class SlackCheckins():
            'format_project_name', 'format_working_on', 'format_progress_and_roadblocks', 'format_progress', 'format_roadblocks', 'format_plans_for_following_week','format_meetings', 
            'status', 
            'project_name', 'working_on', 'progress_and_roadblocks', 'progress', 'roadblocks', 'plans_for_following_week', 'meetings', 
-           'n_projects', 'index_', 'index','progress_and_roadblocks_combined'
+           'projects_parsed', 'index_', 'index','progress_and_roadblocks_combined'
         """    
         ##-- Initialize a dataframe to collect the original and parsed information:
-        n_projects_in_columns = 3
+        projects_parsed_in_columns = 3
         parsed_df = df.copy()
-        for i in range(1, n_projects_in_columns+1):
+        for i in range(1, projects_parsed_in_columns+1):
             for feature in self.all_keywords:
                 text = f"{feature}_{i}"
                 parsed_df.at[0,text] = np.nan 
@@ -330,8 +331,8 @@ class SlackCheckins():
         for i in range(len(df)):
             text = df.at[i,'text']   
             indices_start_of_category, category_names = self.get_indices_of_lines_with_category_name(text)
-            n_projects = self.count_projects(category_names)
-            parsed_df.at[i,'n_projects'] = int(n_projects)            
+            projects_parsed = self.count_projects(category_names)
+            parsed_df.at[i,'projects_parsed'] = int(projects_parsed)            
             if len(indices_start_of_category) == 0:
                 continue
             else:
@@ -340,9 +341,87 @@ class SlackCheckins():
                 parsed_df = self.checkin_categories_to_df_1row(parsed_df, i, text, indices_start_of_category, category_names, answers)      
             parsed_df = self.cleanDF.handle_missing_values(parsed_df)  
         
-        self.id_sample_msg(parsed_df)
+        parsed_df = self.id_sample_msg(parsed_df)
         return parsed_df
         
+    def checkin_categories_to_df_nrows(self, df, text, indices_start_of_category, category_names, answers):
+        """
+		Takes the empty dataframe created with the function "create_empty_df_with_categories(n_rows)" and fills the cells 
+		with the "answers" to the categories that were correctly identified in the text.
+		"""    
+        n_project = self.count_projects(category_names)   
+        project_counter = -1
+        for i in range(len(category_names)):
+            if category_names[i] == 'project_name':
+                project_counter += 1
+				#df.at[project_counter, 'text'] = text
+            df.at[project_counter, category_names[i]] = answers[i]
+        return df
+		    
+    def parse_nrows(self, df):
+        """
+		Returns a dataframe with the parsed text.
+		Messages with weekly reports of more than one project are splitted in as many rows as projects in the report. 
+		The columns are:
+		   'user', 'client_msg_id', 'ts', 'json_name', 'text',
+		   'format_project_name', 'format_working_on', 'format_progress_and_roadblocks', 'format_progress', 'format_roadblocks', 'format_plans_for_following_week','format_meetings', 
+		   'status', 
+		   'project_name', 'working_on', 'progress_and_roadblocks', 'progress', 'roadblocks', 'plans_for_following_week', 'meetings', 
+		   'projects_parsed', 'index_', 'index','progress_and_roadblocks_combined'
+		"""    
+
+        ##-- Identify messages with sample text:
+        df_tmp = self.id_sample_msg(df.copy())
+        sample_msg_indices = df_tmp[df_tmp['projects_parsed']=='sample'].index
         
-        
+        for i in range(len(df)):
+            text = df.at[i,'text']       
+            indices_start_of_category, category_names = self.get_indices_of_lines_with_category_name(text)
+            if i in sample_msg_indices:
+                df_i_blocks = self.create_empty_df_with_categories(1)
+                projects_parsed = 'sample'            
+            elif len(indices_start_of_category) == 0:   
+                ##-- If no keywords were identified in the non-empty text:
+                df_i_blocks = self.create_empty_df_with_categories(1)
+                projects_parsed = '0'
+            elif len(indices_start_of_category) > 0:
+                blocks_list = self.group_lines(text, indices_start_of_category)
+                answers = self.extract_answers(blocks_list)            
+                projects_parsed = self.count_projects(category_names)                
+                if projects_parsed == 0:
+                    ##-- If project_name was not identified:
+                    df_i_blocks = self.create_empty_df_with_categories(1)
+                    projects_parsed = '0'
+                else:
+                    df_i_blocks = self.create_empty_df_with_categories(projects_parsed)
+                    df_i_blocks = self.checkin_categories_to_df_nrows(df_i_blocks, text, indices_start_of_category, category_names, answers) 
+                    if projects_parsed == 1:
+                       projects_parsed = '1/1'
+                    elif projects_parsed == 2:
+                       projects_parsed = ['1/2','2/2']
+                    elif projects_parsed == 3:
+                       projects_parsed = ['1/3','2/3', '3/3']                         
+            df_i_blocks['projects_parsed'] = projects_parsed
+            df_i_blocks['index_'] = i
+            df_i_blocks = self.cleanDF.handle_missing_values(df_i_blocks)  
+                
+            ##-- Dataframe with the original text. Rows are dublicated as many times as projects in the checkin:
+            df_i_text = pd.DataFrame([list(df.loc[i].values)]*len(df_i_blocks))
+            df_i_text.columns = df.columns
+            df_i_text['index'] = i
+            df_i_text = self.cleanDF.handle_missing_values(df_i_text)
+
+            ##-- Concatenate df_i_text and df_i_blocks for i-th message:
+            df_i_all = pd.concat([df_i_text, df_i_blocks], axis=1, ignore_index=True)
+            df_i_all.columns = list(df_i_text.columns) + list(df_i_blocks.columns)
+            df_i_all = self.cleanDF.handle_missing_values(df_i_all)  
+
+            ##-- Collect df_i_all in parsed_df:
+            if i==0:
+                parsed_df = df_i_all.copy()
+            else:
+                parsed_df = pd.concat([parsed_df, df_i_all], axis=0, ignore_index=True)
+
+        return parsed_df      
+    
 
