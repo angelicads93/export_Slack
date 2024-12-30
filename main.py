@@ -1,6 +1,6 @@
 from inputs import chosen_channel_name
 import messages
-import AG_Slack_weekly_reports
+import checkins
 import excel
 
 ##############################################################################################################################
@@ -42,7 +42,7 @@ columns_order = ['msg_id', 'msg_date', 'user', 'name', 'display_name', 'deactiva
 df_TEST = channel_messages_df[columns_order]
 
 ##-- Parse Check-in messages:
-parseDF = AG_Slack_weekly_reports.SlackCheckins()
+parseDF = checkins.SlackCheckins()
 df_TEST = parseDF.parse_nrows(df_TEST)
 
 ##-- Reorder columns:

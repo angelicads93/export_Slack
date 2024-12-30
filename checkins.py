@@ -1,20 +1,7 @@
 import pandas as pd 
 import numpy as np
-from os import listdir
-from pathlib import Path
-import re
 
-import inputs
-rows_to_show = inputs.rows_to_show
-missing_value = inputs.missing_value
-timmeshift = inputs.timmeshift
-chosen_channel_name = inputs.chosen_channel_name
-write_all_channels_info = inputs.write_all_channels_info
-write_all_users_info  = inputs.write_all_users_info
-slackexport_folder_path = inputs.slackexport_folder_path
-converted_directory = inputs.converted_directory
-key_wrd_text_show = inputs.key_wrd_text_show
-continue_analysis = inputs.continue_analysis
+from inputs import missing_value
 
 
 class CleanDataFrame():
