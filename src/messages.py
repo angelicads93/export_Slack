@@ -9,33 +9,11 @@ import shutil
 from urlextract import URLExtract
 import re
 
+
 from inputs import missing_value, timmeshift, chosen_channel_name, write_all_channels_info, write_all_users_info, slackexport_folder_path, converted_directory, continue_analysis
 import excel
+import clean
 
-
-class CleanDF:
-    def __init__(self):
-        pass
-    
-    def replace_empty_space(self, df, column):
-        """Function to replace empty spaces "" with the string missing_value for a given column"""
-        for i in range(len(df)):
-            if df.at[i,column] == "":
-                df.at[i,column] = missing_value  
-                
-    def replace_NaN(self, df, column):
-        """Function to replace missing values with the string missing_value for a given column """
-        df[column] = df[column].fillna(missing_value)    
-        
-    def handle_missing_values(self, df):
-        """Function that replaces missing values in all the columns of the df"""
-        df = df.replace(pd.NaT, missing_value)
-        df = df.replace(np.nan, missing_value) 
-        df = df.fillna(missing_value)
-        return df
-        
-        
-        
         
 class InspectSource:
     def __init__(self):       
@@ -167,7 +145,7 @@ class InspectSource:
         
 class SlackChannelsAndUsers:
     def __init__(self):
-        self.cleanDF = CleanDF()
+        #self.cleanDF = clean.CleanDF()
         self.inspect_source = InspectSource()
         self.save_path = self.inspect_source.save_in_path()
 
@@ -220,7 +198,7 @@ class SlackChannelsAndUsers:
     
         ##-- Handle missing values or empty strings:
         for feature in ['members', 'purpose']:
-            self.cleanDF.replace_empty_space(self.all_channels_df, feature)
+            clean.replace_empty_space(self.all_channels_df, feature)
 
         ##-- Write all channel's info to .xlsx files, if requested by user:
         self.write_info_to_file(write_all_channels_info, "_all_channels", self.all_channels_df, self.save_path)
@@ -253,7 +231,7 @@ class SlackChannelsAndUsers:
         
         ##-- Handling missing values in all_users_df:
         for feature in ['display_name', 'name', 'team_id', 'id', 'profile_title', 'profile_real_name']:#, 'profile_status_text', 'profile_status_emoji']:
-            self.cleanDF.replace_empty_space(self.all_users_df, feature) 
+            clean.replace_empty_space(self.all_users_df, feature) 
             
         ##-- Write all users's info to .xlsx files, if requested by user:
         self.write_info_to_file(write_all_users_info, "_all_users", self.all_users_df, self.save_path)
