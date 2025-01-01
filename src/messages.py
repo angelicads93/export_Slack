@@ -13,6 +13,7 @@ import re
 from inputs import missing_value, timmeshift, chosen_channel_name, write_all_channels_info, write_all_users_info, slackexport_folder_path, converted_directory, continue_analysis
 import excel
 import clean
+import checkins
 
         
 class InspectSource:
@@ -366,8 +367,8 @@ class SlackMessages:
             i_df = df_users[df_users['id']==df_messages.at[index,'user']]
             ##-- If users in channel_messages_df is not in all_users_df:
             if i_df['display_name'].shape[0]==0 and df_messages.at[index,'user']=='USLACKBOT':        ##AG: 'USLACKBOT' is a special case
-                df_messages.at[index, 'name'] =  df_messages.at[index, 'user']
-                df_messages.at[index, 'display_name'] =  df_messages.at[index, 'user']
+                df_messages.at[index, 'name'] =  'USLACKBOT'
+                df_messages.at[index, 'display_name'] =  'USLACKBOT'
                 df_messages.at[index, 'is_bot'] =  True
                 df_messages.at[index, 'deactivated'] =  False    #IP20241121
             elif i_df['display_name'].shape[0]==0 and df_messages.at[index,'user']!='USLACKBOT':   
@@ -376,11 +377,11 @@ class SlackMessages:
                 df_messages.at[index, 'is_bot'] =  "(user not found)"
                 df_messages.at[index, 'deactivated'] =  "(user not found)"
             ##-- If users in channel_messages_df is in all_users_df:
-            else:
-                df_messages.at[index, 'name'] = i_df['name'].values
-                df_messages.at[index, 'display_name'] = i_df['display_name'].values
-                df_messages.at[index, 'is_bot'] = i_df['is_bot'].values
-                df_messages.at[index, 'deactivated'] =  i_df['deleted'].values  #IP20241121
+            else:   
+                df_messages.at[index, 'name'] = i_df['name'].values[0]
+                df_messages.at[index, 'display_name'] = i_df['display_name'].values[0]
+                df_messages.at[index, 'is_bot'] = i_df['is_bot'].values[0]
+                df_messages.at[index, 'deactivated'] =  i_df['deleted'].values[0]  #IP20241121
             del i_df
     
     
@@ -560,14 +561,21 @@ class SlackMessages:
                 self.ts_to_tz(channel_messages_df, 'json_mod_ts', 'json_mod_date')
                 self.ts_to_tz(channel_messages_df, 'ts_latest_reply', 'latest_reply_date')
                 self.ts_to_tz(channel_messages_df, 'ts_thread', 'thread_date')
-                print('main_analysys ->>',curr_channel_name, "  ", datetime.now().time(), ' Formated the dates and times in the dataframe')
-                    
-                ##-- Reorder the columns in channel_messages_df:
-                #columns_order = ['msg_id', 'msg_date', 'user', 'name', 'display_name', 'deactivated', 'is_bot', 'type', 'text', 'reply_count', 'reply_users_count', 'latest_reply_date', 'thread_date', 'parent_user_name', 'URL(s)']
-                #channel_messages_df = channel_messages_df[columns_order]
+                print(curr_channel_name, datetime.now().time(), ' Formated the dates and times in the dataframe')
                 
                 ##-- Sort the dataframe by msg_date:
                 channel_messages_df.sort_values(by='msg_date', inplace=True, ignore_index=True)
+                
+                ##-- Parse checkins if applicable & reorder columns:
+                if curr_channel_name == 'think-biver-sunday-checkins':
+                    channel_messages_df = checkins.parse_nrows(channel_messages_df)
+                    column_names_checkins = ['projects_parsed', 'project_name', 'working_on', 'progress_and_roadblocks', 'progress', 'roadblocks','plans_for_following_week', 'meetings']
+                else:
+                    column_names_checkins = []
+                column_names_order = ['msg_id', 'msg_date', 'user', 'name', 'display_name', 'deactivated',
+                    'is_bot', 'type', 'text', 'reply_count', 'reply_users_count',
+                    'latest_reply_date', 'thread_date', 'parent_user_name', 'URL(s)'] + column_names_checkins
+                channel_messages_df = channel_messages_df[column_names_order]
                 
                 ##-- Write channel_messages_df to a .xlsx file:
                 channel_messages_mindate = channel_messages_df['msg_date'].min().split(" ")[0]
@@ -576,7 +584,11 @@ class SlackMessages:
                 channel_messages_filename = f"{curr_channel_name}_{channel_messages_mindate}_to_{channel_messages_maxdate}"
                 channel_messages_folder_path = f"{self.save_path}/{channel_messages_filename}.xlsx"
                 channel_messages_df.to_excel(f"{channel_messages_folder_path}", index=False)
-                excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments() 
+                #excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments() 
+                if curr_channel_name == 'think-biver-sunday-checkins':
+                    excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).excel_adjustments(include_checkins = True) 
+                else:
+                    excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).excel_adjustments(include_checkins = False) 
                 print(curr_channel_name, datetime.now().time(), ' Wrote curated messages to xlsx files', '\n')
         
                 dfs_list.append(channel_messages_df)

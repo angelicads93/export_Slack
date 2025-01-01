@@ -33,20 +33,25 @@ class ExcelFormat():
                     self.ws.column_dimensions[clmn_lttr].width = width 
                     break
 
-    def set_cell_color(self):
+    def set_cell_color(self, include_checkins):
         #IP20241121  fill_color when  -> "is_bot"==True  -> message's "type"=="thread"
         fill_bot = PatternFill(start_color="FBBF8F", end_color="FBBF8F", fill_type="solid")
         fill_thread = PatternFill(start_color="FBFB99", end_color="FBFB99", fill_type="solid")
         last_row = self.ws.max_row
-        checkin_rows = ['Q','R','S','T','U','V','W']#,'X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK']
+        
+        if include_checkins==True:
+            checkin_columns = ['Q','R','S','T','U','V','W']#,'X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK'] 
+        else:
+            checkin_columns = []
+            
         for i in range(2, last_row + 1):
             ##-- Coloring 'is_bot' cells:
             if self.ws[f'g{i}'].value == "True" or self.ws[f'g{i}'].value == True:
-                for col in ['C', 'D', 'E', 'F', 'G']+checkin_rows:
+                for col in ['C', 'D', 'E', 'F', 'G']+checkin_columns:
                     self.ws[f'{col}{i}'].fill = fill_bot
             ##-- Coloring 'thread' cells:
             if self.ws[f'H{i}'].value == "thread":
-                for col in ['H', 'I']+checkin_rows:
+                for col in ['H', 'I']+checkin_columns:
                     self.ws[f'{col}{i}'].fill = fill_thread
     
     def set_font_color(self):
@@ -107,6 +112,17 @@ class ExcelFormat():
 
     def save_changes(self):
         self.wb.save(self.file_path)
+        
+        
+    def excel_adjustments(self, include_checkins):
+        self.set_cell_width()
+        self.set_cell_color(include_checkins)
+        self.set_font_color()
+        self.set_cell_allignment()
+        self.set_format_first_row()
+        self.rename_sheet()
+        self.save_changes()        
+            
         
         
     def IP_excel_adjustments(self):
