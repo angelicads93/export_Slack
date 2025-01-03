@@ -333,7 +333,10 @@ class SlackMessages:
                 i_date = missing_value
             else:
                 i_date = pd.to_datetime(df.at[i, original_column_name], unit='s').tz_localize('UTC').tz_convert(timmeshift)
-                i_date = datetime.strftime(i_date, "%Y-%m-%d %H:%M:%S")
+                try:
+                    i_date = datetime.strftime(i_date, "%Y-%m-%d %H:%M:%S")
+                except:
+                    pass
             tzs.append(i_date)
         df[[original_column_name]].astype('datetime64[s]')
         df[original_column_name] = tzs
