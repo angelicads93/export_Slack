@@ -1,5 +1,5 @@
 # Slack channels to Excel databases
-This work was developed to assist the internal functioning of an organization with more than x users and x different Slack channels.
+This work was developed to assist the internal functioning of an organization with more than 1400 users and 114 different Slack channels.
 The goal was to collect, clean, and arrange all the information in the various Slack channels into Excel databases that the project managers could use.
 The results include:
 * Database of all the channels in the Slack workspace
