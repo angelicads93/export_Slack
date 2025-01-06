@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import clean
 
-# #-- Introduce expected/possible keywords per report's category:
+# --Introduce expected/possible keywords per report's category:
 keywords_dictionary = {
     'header': [
         'weekly report', 'report', "week's report"

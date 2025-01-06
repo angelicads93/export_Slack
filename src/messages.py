@@ -9,7 +9,7 @@ from urlextract import URLExtract
 import re
 
 
-from inputs import missing_value, timmeshift, chosen_channel_name, \
+from inputs import missing_value, timezone, chosen_channel_name, \
     write_all_channels_info, write_all_users_info, slackexport_folder_path, \
     converted_directory
 import excel
@@ -37,8 +37,12 @@ class InspectSource:
     def check_source_path_exists(self):
         """ Verifies that the specified path with the source data exists """
         if exists(slackexport_folder_path) is False:
-            print('Please enter a valid path to the source directory')
+            status = 'Please enter a valid path to the source directory'
+            print(status)
             self.continue_analysis = False
+        else: 
+            status = ''
+        return ''
 
     def save_in_path(self):
         """ Adds the directory _JSONs_converted to the specified path where
@@ -440,7 +444,7 @@ class SlackMessages:
             else:
                 i_date = pd.to_datetime(
                     df.at[i, original_column_name], unit='s'
-                    ).tz_localize('UTC').tz_convert(timmeshift)
+                    ).tz_localize('UTC').tz_convert(timezone)
                 try:
                     i_date = datetime.strftime(i_date, "%Y-%m-%d %H:%M:%S")
                 except:
