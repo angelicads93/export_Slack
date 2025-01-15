@@ -58,3 +58,6 @@ deactivate
 
 ## Usage on Visual Studio Code:
 Check the file `instructions_VScode.md` for detailed instructions on how to get and load the repository into Visual Studio Code, create and activate the virtual environment, and set up and run the analysis.
+
+## Usage on Jupyter Notebook:
+Open the Jupyter Notebook `main.ipynb` and follow the steps :)
