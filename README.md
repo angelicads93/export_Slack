@@ -56,3 +56,5 @@ After completing the analysis, the virtual environment can be deactivated with,
 deactivate
 ```
 
+## Usage on Visual Studio Code:
+Check the file `instructions_VScode.md` for detailed instructions on how to get and load the repository into Visual Studio Code, create and activate the virtual environment, and set up and run the analysis.
