@@ -200,6 +200,8 @@ def id_sample_msg(df):
                 or sample_text_2 in text_i \
                 or sample_text_3 in text_i:
             df.loc[i, 'projects_parsed'] = 'sample'
+        else:
+            df.loc[i, 'projects_parsed'] = ''
     return df
 
 

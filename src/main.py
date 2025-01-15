@@ -1,5 +1,3 @@
-import sys
-sys.path.append("../")
 import messages
 
 # --Initialize constructor of the class InspectSource:

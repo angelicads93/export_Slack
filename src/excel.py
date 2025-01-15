@@ -12,12 +12,12 @@ class ExcelFormat():
 
     def set_cell_width(self):
         """ Sets the cell width of each column in the Excel table """
-        w = 25
+        w = 30
         column_widths = {
             'msg_id': 12, 'msg_date': 19, 'user': 15, 'name': 19,
             'display_name': 19, 'deactivated': 7, 'is_bot': 7, 'type': 8,
             'text': 35, 'reply_count': 5, 'reply_users_count': 5,
-            'latest_reply_date': 17, 'thread_date': 17, 'parent_user_id': 25,
+            'latest_reply_date': 19, 'thread_date': 19, 'parent_user_id': 25,
             'URL(s)': 37, 'projects_parsed': 8,
             'project_name': w, 'working_on': w, 'progress_and_roadblocks': w,
             'progress': w, 'roadblocks': w, 'plans_for_following_week': w,

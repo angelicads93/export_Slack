@@ -448,7 +448,7 @@ class SlackMessages:
                 try:
                     i_date = datetime.strftime(i_date, "%Y-%m-%d %H:%M:%S")
                 except:
-                    pass
+                    i_date = missing_value
             tzs.append(i_date)
         df[[original_column_name]].astype('datetime64[s]')
         df[original_column_name] = tzs
@@ -545,6 +545,22 @@ class SlackMessages:
                     text = re.sub(match, "", text)
                     text = re.sub(r"<+\|", "<", text)
                 df_messages.at[i, 'text'] = text
+
+    def drop_extra_unparsed_rows(self, df):
+        """ Drops the rows of the final-version of the df that were created
+        from misparsed messages. For example, if the text has two projects, one
+        identified as "Name:" and the other as "Project Name:"
+        """
+        rows_to_drop = []
+        for i in range(len(df)):
+            if df.at[i, 'projects_parsed'] == missing_value:
+                rows_to_drop.append(i)
+            if df.at[i, 'msg_date'] == missing_value \
+                    and df.at[i, 'user'] == missing_value:
+                rows_to_drop.append(i)
+        df = df.drop(rows_to_drop)
+        df = clean.reset_indices(df)
+        return df
 
     def get_all_messages_df(self):
         """ Most generally, it iterates over all the Slack channels and
@@ -652,6 +668,9 @@ class SlackMessages:
                         'projects_parsed', 'project_name', 'working_on',
                         'progress_and_roadblocks', 'progress', 'roadblocks',
                         'plans_for_following_week', 'meetings']
+                    channel_messages_df = self.drop_extra_unparsed_rows(
+                        channel_messages_df
+                        )
                 else:
                     column_names_checkins = []
                 column_names_order = ['msg_id', 'msg_date', 'user', 'name',
@@ -661,13 +680,13 @@ class SlackMessages:
                                       'thread_date', 'parent_user_name',
                                       'URL(s)'] + column_names_checkins
                 channel_messages_df = channel_messages_df[column_names_order]
-
+                    
                 # --Write channel_messages_df to a .xlsx file:
                 channel_messages_mindate = channel_messages_df['msg_date'].min().split(" ")[0]
                 channel_messages_maxdate = channel_messages_df['msg_date'].max().split(" ")[0]
-                channel_messages_maxdate = channel_messages_df['msg_date'].max().split(" ")[0]
                 channel_messages_filename = f"{curr_channel_name}_{channel_messages_mindate}_to_{channel_messages_maxdate}"
                 channel_messages_folder_path = f"{self.save_path}/{channel_messages_filename}.xlsx"
+                #channel_messages_folder_path = f"{self.save_path}/INSPECT.xlsx"
                 channel_messages_df.to_excel(
                     f"{channel_messages_folder_path}", index=False
                     )
@@ -690,3 +709,4 @@ class SlackMessages:
         print(datetime.now().time(), 'Done')
 
         return channel_messages_df
+
