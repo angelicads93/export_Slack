@@ -25,7 +25,7 @@ The conditions or inputs to the code can be specified in the file `inputs.py`.
 |chosen_channel_name | 'name-of-slack-channel', if analyzing only one Slack channel, or '' if analyzing all the Slack channels present in the source directory | 
 | write_all_channels_info | True/False to generate a file with the information of all the Slack channels |
 | write_all_users_info | True/False to generate a file with the information of all the Slack users |
-| timeshift | Choice of the time zone to express the dates in the Excel databases |
+| timezone | Choice of the time zone to express the dates in the Excel databases |
 | missing_value | Choice of string to identify missing values in the Excel databases |
     
 ## Dependencies:
