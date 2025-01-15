@@ -49,7 +49,7 @@ pip install -r requirements.txt
 ## Analysis:
 Given the information supplied in the file `inputs.py`, you can execute the analysis with the following command,
 ```{bash}
-python3 src/main.py
+python3 main.py
 ```
 After completing the analysis, the virtual environment can be deactivated with,
 ```{bash}
