@@ -24,14 +24,14 @@
    When everything has been installed, you should see in your powershell a message that says “Successfully installed“ followed by the names of all the dependencies.
 
 ## To specify the conditions of the analysis:
-* From your explorer tab, open the file called “inputs.py” inside the “src” directory.
+* From your explorer tab, open the file called “inputs.py”.
 * Specify the conditions of your choice.
 * Save the changes.
 
 ## To run the analysis:
 * From the powershell, and within the same virtual environment venv, run the command
   ```{script}
-  python3 .\src\main.py
+  python3 .\main.py
   ```
 
 After you have finished using exportSlack, you can deactivate the virtual environment by running the following command in your powershell:
