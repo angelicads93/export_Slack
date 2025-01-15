@@ -12,9 +12,9 @@ import re
 from inputs import missing_value, timezone, chosen_channel_name, \
     write_all_channels_info, write_all_users_info, slackexport_folder_path, \
     converted_directory
-import excel
-import clean
-import checkins
+from src import excel
+from src import clean
+from src import checkins
 
 
 class InspectSource:

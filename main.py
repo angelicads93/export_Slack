@@ -1,4 +1,5 @@
-import messages
+import inputs
+from src import messages
 
 # --Initialize constructor of the class InspectSource:
 inspect_source = messages.InspectSource()

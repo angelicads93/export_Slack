@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import clean
+from src import clean
 
 # --Introduce expected/possible keywords per report's category:
 keywords_dictionary = {
