@@ -19,7 +19,7 @@
   You will see "(venv)" at the beginning of the line with the command prompt.
 * Install the required dependencies in your virtual environment by running in the powershell,
   ```{script}
-   pip install -r requirements.txxt
+   pip install -r requirements.txt
   ```
    When everything has been installed, you should see in your powershell a message that says “Successfully installed“ followed by the names of all the dependencies.
 
@@ -36,6 +36,6 @@
 
 After you have finished using exportSlack, you can deactivate the virtual environment by running the following command in your powershell:
 ```{script}
-deativate
+deactivate
 ```
 
