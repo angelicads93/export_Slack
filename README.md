@@ -31,9 +31,9 @@ The conditions or inputs to the code can be specified in the file `inputs.py`.
 ## Dependencies:
 The dependencies used are specified in the file `requirements.txt`. You can create a virtual environment and install such dependencies by running the following command from the directory where you wish to create the virtual environment:
 ```{bash}
-python3 -m venv ./venv
+python -m venv venv
 ```
-To activate the virtual environment _venv_ in Linux, run the command,
+You might need to use "python" or "python3" in this command depending on your Python installation. To activate the virtual environment _venv_ in Linux, run the command,
 ```{bash}
 source venv/bin/activate
 ```
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 ## Analysis:
 Given the information supplied in the file `inputs.py`, you can execute the analysis with the following command,
 ```{bash}
-python3 main.py
+python main.py
 ```
 After completing the analysis, the virtual environment can be deactivated with,
 ```{bash}
@@ -57,7 +57,7 @@ deactivate
 ```
 
 ## Usage on Visual Studio Code:
-Check the file `instructions_VScode.md` for detailed instructions on how to get and load the repository into Visual Studio Code, create and activate the virtual environment, and set up and run the analysis.
+Check the file `Documentation > instructions_VScode.md` for detailed instructions on how to get and load the repository into Visual Studio Code, create and activate the virtual environment, and set up and run the analysis.
 
 ## Usage on Jupyter Notebook:
 Open the Jupyter Notebook `main.ipynb` and follow the steps :)
