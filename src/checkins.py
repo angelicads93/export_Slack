@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src import clean
+import clean
 
 # --Introduce expected/possible keywords per report's category:
 keywords_dictionary = {
@@ -282,7 +282,7 @@ def checkin_categories_to_df_nrows(df, text, indices_start_of_category,
     return df
 
 
-def parse_nrows(df):
+def parse_nrows(df, missing_value):
     """ Returns a dataframe with the parsed text.
     Messages with weekly reports of more than one project are splitted in as
     many rows as projects in the report.

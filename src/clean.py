@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
-
-from inputs import missing_value
-
+from settings import missing_value
 
 def replace_empty_space(df, column):
     """ Replaces empty spaces "" with the string missing_value for

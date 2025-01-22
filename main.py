@@ -1,8 +1,15 @@
 import inputs
-from src import messages
+
+# --Change current_working_directory to src/ to access all the modules:
+import os
+os.chdir('./src/')
+import messages
 
 # --Initialize constructor of the class InspectSource:
-inspect_source = messages.InspectSource()
+inspect_source = messages.InspectSource(
+    inputs.chosen_channel_name,
+    inputs.slackexport_folder_path,
+    inputs.converted_directory)
 # --Check validity of input paths:
 analyze_all_channels = inspect_source.set_flag_analyze_all_channels()
 inspect_source.check_source_path_exists()
@@ -16,7 +23,12 @@ all_channels_jsonFiles_dates = inspect_source.all_channels_jsonFiles_dates
 
 
 # --Initialize constructor of the class SlackChannelAndUsers:
-scu = messages.SlackChannelsAndUsers()
+scu = messages.SlackChannelsAndUsers(
+    inputs.chosen_channel_name,
+    inputs.write_all_channels_info,
+    inputs.write_all_users_info,
+    inputs.slackexport_folder_path,
+    inputs.converted_directory)
 # --Execute the main functions of the class:
 scu.get_all_channels_info()
 scu.get_all_users_info()
@@ -26,6 +38,9 @@ all_users_df = scu.all_users_df
 
 
 # --Initialize constructor of the class SlackMessages:
-sm = messages.SlackMessages()
+sm = messages.SlackMessages(
+    inputs.chosen_channel_name,
+    inputs.write_all_channels_info, inputs.write_all_users_info,
+    inputs.slackexport_folder_path, inputs.converted_directory)
 # --Execute the main function of the class:
 channel_messages_df = sm.get_all_messages_df()

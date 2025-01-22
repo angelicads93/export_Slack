@@ -1,7 +1,8 @@
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
-from inputs import key_wrd_text_show
+
+from settings import key_wrd_text_show
 
 class ExcelFormat():
     def __init__(self, file_path, curr_channel_name):
