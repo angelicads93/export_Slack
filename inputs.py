@@ -10,9 +10,15 @@ write_all_channels_info = False
 # --Slack users?:
 write_all_users_info = False
 
-# --Insert path where the LOCAL copy of the GoogleDrive folder is:
-slackexport_folder_path = '/home/agds/Documents/RET/Source/Oct_3_2024_to_Nov_9_2024'
+# --Insert absolute path to the LOCAL copy of the GoogleDrive folder.
+# Note: To get the absolute path in Windows, 
+#  1. Navigate to the desire folder with File Explorer.
+#  2. Right-click on the name of the folder.
+#  3. Select "Copy as path".
+#  4. Paste the path between the quotation marks bellow.
+slackexport_folder_path = r"absolute_path_to_source_directory"
 
-# --Insert path where the converted files will be saved:
-converted_directory = '/home/agds/Documents/RET/Source/Oct_3_2024_to_Nov_9_2024'
+# --Insert path where the converted files will be saved.
+# Note: Enter r"" to save your files in the source directory.
+converted_directory = r"absolute_path_to_destination_directory"
 

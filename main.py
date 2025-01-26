@@ -1,9 +1,11 @@
 import inputs
 
-# --Change current_working_directory to src/ to access all the modules:
-import os
-os.chdir('./src/')
-import messages
+# --Change current_working_directory to src/ and access all the modules:
+import os, sys
+sys.path.append(os.path.join(os.getcwd(), 'src'))
+from src import messages
+
+slackexport_folder_path = inputs.slackexport_folder_path
 
 # --Initialize constructor of the class InspectSource:
 inspect_source = messages.InspectSource(
