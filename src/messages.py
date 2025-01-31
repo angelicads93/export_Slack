@@ -1,10 +1,11 @@
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir
+from os import listdir, chmod
 from os.path import getmtime, exists, isdir
 from pathlib import Path
 import shutil
+import stat
 from urlextract import URLExtract
 import re
 
@@ -59,7 +60,8 @@ class InspectSource:
                 print(
                     f"The path '{path.split('JSONs')[0][:-1]}' already exists and it will be overwritten."
                     )
-                shutil.rmtree(exprt_folder_path)
+                chmod(exprt_folder_path, stat.S_IRWXU)
+                #shutil.rmtree(exprt_folder_path)
         Path(f"{path}").mkdir(parents=True, exist_ok=True)
 
     def check_format_of_json_names(self, list_names):
