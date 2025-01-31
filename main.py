@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import inputs
 
 # --Change current_working_directory to src/ and access all the modules:

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -11,6 +10,7 @@ import tkinter as tk
 import os
 from os.path import exists
 import messages
+from settings import dest_name_ext
 
 
 class GUI(tk.Tk):
@@ -53,7 +53,7 @@ class GUI(tk.Tk):
         self.title = "Slack channels to Excel Databases"
         self.geometry('600x500')
         self.configure(bg=self.darkA)
-        self.resizable(0,0)
+        self.resizable(0, 0)
 
         # --Header:
         self.frame = tk.Frame(master=self, bg=self.bkgc)
@@ -64,7 +64,7 @@ class GUI(tk.Tk):
             width=300, bg=self.bannerc
             )
         self.label.configure(fg=self.titlec)
-        
+
         self.frame1 = tk.Frame(master=self, bg=self.bkgc)
 
         # --Label for the source path:
@@ -73,7 +73,7 @@ class GUI(tk.Tk):
             font=self.font_choice, bg=self.bkgc
             )
         self.labelOrig.configure(fg=self.letterc)
-        
+
         # --Entry box for the source path:
         self.entryOrig = tk.Entry(
             master=self.frame1,
@@ -105,7 +105,7 @@ class GUI(tk.Tk):
             font=self.font_choice, bg=self.bkgc
             )
         self.labelChannel.configure(fg=self.letterc)
-        
+
         # --Option Menu for the available channels in the source path:
         self.default_str_channel = '  '   # Default value
         self.channel_var = tk.StringVar(self.frame1)
@@ -129,8 +129,10 @@ class GUI(tk.Tk):
             master=self.frame1, variable=self.channels_flag_var,
             text=' Export general information of all the Slack channels',
             font=self.font_choice, fg=self.letterc,
-            bg=self.bkgc, disabledforeground=self.bkgc, bd=0, highlightthickness=0,
-            selectcolor=self.bkgc, activebackground=self.bkgc, activeforeground=self.letterc,
+            bg=self.bkgc, disabledforeground=self.bkgc,
+            bd=0, highlightthickness=0,
+            selectcolor=self.bkgc,
+            activebackground=self.bkgc, activeforeground=self.letterc,
             onvalue=True, offvalue=False, offrelief='flat'
             )
 
@@ -141,8 +143,10 @@ class GUI(tk.Tk):
             master=self.frame1, variable=self.users_flag_var,
             text=' Export general information of all the Slack users',
             font=self.font_choice, fg=self.letterc,
-            bg=self.bkgc, disabledforeground=self.bkgc, bd=0, highlightthickness=0,
-            selectcolor=self.bkgc, activebackground=self.bkgc, activeforeground=self.letterc,
+            bg=self.bkgc, disabledforeground=self.bkgc,
+            bd=0, highlightthickness=0,
+            selectcolor=self.bkgc,
+            activebackground=self.bkgc, activeforeground=self.letterc,
             onvalue=True, offvalue=False
             )
 
@@ -150,7 +154,8 @@ class GUI(tk.Tk):
         self.txt = ' '
         self.labelError = tk.Label(
             master=self.frame1, text=self.txt,
-            font=self.font_choice, bg=self.bkgc, width=600, wraplength=360, height=5
+            font=self.font_choice, bg=self.bkgc,
+            width=600, wraplength=360, height=5
             )
         self.labelError.configure(fg=self.letterc)
 
@@ -162,8 +167,8 @@ class GUI(tk.Tk):
             border=0, highlightcolor=self.darkB, highlightbackground=self.bkgc
             )
         self.button.configure(bg=self.darkB, fg=self.letterc)
-        
-        # --Pack widgets with desired order, sandwiching the optionMenu in the middle.
+
+        # --Pack widgets in desired order, sandwiching optionMenu in the middle
         # --First in descending order, widgets that are before the optionMenu:
         self.frame.pack(pady=5, padx=5, fill='both', expand=True, side='top')
         self.label.pack(pady=5, padx=5, side='top')
@@ -177,7 +182,7 @@ class GUI(tk.Tk):
         self.labelChannel.pack(padx=5, pady=0, anchor='w', side='top')
         # --Then the optionMenu:
         self.Channel.pack(padx=5, pady=6, anchor='w')
-        # --Finally, widgets after the optionMenu, in reverse order from bottom-top:
+        # --Then widgets after the optionMenu, in reverse order bottom-top:
         self.button.pack(padx=5, pady=10, side='bottom')
         self.labelError.pack(padx=5, pady=10, side='bottom')
         self.checkbox_users.pack(padx=5, pady=5, anchor='w', side='bottom')
@@ -206,12 +211,11 @@ class GUI(tk.Tk):
         f.write(f"converted_directory = '{path_dest}'" + '\n\n')
         f.close()
 
-
     def check_inputs_exists(self):
         """ Verifies the validity of the input. Execute analysis if it's ok"""
-        # -- Retrieve user's input:        
-        self.path_orig = str(self.entryOrig.get()).replace('"','')
-        self.path_dest = str(self.entryDest.get()).replace('"','')
+        # -- Retrieve user's input:
+        self.path_orig = str(self.entryOrig.get()).replace('"', '')
+        self.path_dest = str(self.entryDest.get()).replace('"', '')
         self.channel_var_get = str(self.channel_var.get())
 
         # --1. Verify source path:
@@ -224,8 +228,7 @@ class GUI(tk.Tk):
             self.labelError.configure(text=self.txt)
             print(self.txt)
         elif self.path_orig != '' and exists(self.path_orig) is True:
-            self.entryDest.configure(state='normal')           
-            print('AG: SOURCE PATH = ', self.path_orig)
+            self.entryDest.configure(state='normal')
 
             # --2. Verify destination path:
             if self.path_dest == '':
@@ -237,10 +240,8 @@ class GUI(tk.Tk):
                 self.labelError.configure(text=self.txt)
                 print(self.txt)
             elif self.path_dest != '' and exists(self.path_dest) is True:
-                print('AG: DESTINATION PATH = ', self.path_dest)
-                print('AG: CHANNEL_VAR = ', self.channel_var_get)
                 if os.access(self.path_dest, os.X_OK) is False:
-                    print('AG: Cannot right in the destinatin directory')
+                    print('AG: Cannot write in the destinatin directory')
                 else:
                     # --3. Verify channel:
 
@@ -250,13 +251,12 @@ class GUI(tk.Tk):
                         )
                     channels_names = inspect_source.get_channels_names()
                     channels_names.insert(0, 'All channels')
-                    if "_JSONs_converted" in channels_names:
-                        print('YES')
-                        channels_names.remove("_JSONs_converted")
+                    if dest_name_ext in channels_names:
+                        channels_names.remove(dest_name_ext)
                     print('AG: CHANNELS NAMES = ', channels_names)
-                
+
                     # --Activate menu with channels_name as choices:
-                    if self.channel_var_get == self.default_str_channel:                
+                    if self.channel_var_get == self.default_str_channel:
                         self.Channel.destroy()
                         self.channel_var = tk.StringVar()
                         self.channel_var.set(self.default_str_channel)
@@ -267,17 +267,19 @@ class GUI(tk.Tk):
                             )
                         self.Channel.configure(
                             font=self.font_choice, fg=self.letterc,
-                            width=600, bg=self.boxc, 
+                            width=600, bg=self.boxc,
                             border=0, highlightthickness=0, borderwidth=0,
-                            activebackground=self.boxc, activeforeground=self.letterc,
+                            activebackground=self.boxc,
+                            activeforeground=self.letterc,
                             justify='left', direction='below'
                             )
                         self.Channel['menu'].configure(
                             bg=self.boxc, fg=self.letterc,
-                            activebackground='gray', activeforeground=self.letterc,
+                            activebackground='gray',
+                            activeforeground=self.letterc,
                             border=0, borderwidth=0)
                         self.Channel.pack(padx=5, pady=10)
-                    
+
                         self.txt = 'Please enter a Slack channel'
                         self.labelError.configure(text=self.txt)
                         print(self.txt)
@@ -287,7 +289,8 @@ class GUI(tk.Tk):
                         print('Checking consistency')
 
                         inspect_source = messages.InspectSource(
-                            self.channel_var_get, self.path_orig, self.path_dest
+                            self.channel_var_get,
+                            self.path_orig, self.path_dest
                             )
                         save_in_path = inspect_source.save_in_path()
                         inspect_source.check_save_path_exists(save_in_path)
@@ -295,7 +298,8 @@ class GUI(tk.Tk):
                         channels_names = inspect_source.get_channels_names()
 
                         self.build_input_file(
-                            self.channel_var_get, self.path_orig, self.path_dest,
+                            self.channel_var_get,
+                            self.path_orig, self.path_dest,
                             self.channels_flag_var, self.users_flag_var
                             )
                         self.txt = "Downloading..."
@@ -311,7 +315,7 @@ class GUI(tk.Tk):
         menu = self.om["menu"]
         menu.delete(0, "end")
         for string in self.options:
-            menu.add_command(label=string, 
+            menu.add_command(label=string,
                              command=lambda value=string: self.om_variable.set(value))
 
     def startDownload(self):
