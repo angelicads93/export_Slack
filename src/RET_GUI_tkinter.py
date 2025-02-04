@@ -50,10 +50,10 @@ class GUI(tk.Tk):
                               False, False)
 
         # --Title and size of the GUI:
-        self.title = "Slack channels to Excel Databases"
+        self.wm_title = "Slack channels to Excel Databases"
         self.geometry('600x500')
         self.configure(bg=self.darkA)
-        self.resizable(0, 0)
+        #self.resizable(0, 0)
 
         # --Header:
         self.frame = tk.Frame(master=self, bg=self.bkgc)
@@ -65,18 +65,16 @@ class GUI(tk.Tk):
             )
         self.label.configure(fg=self.titlec)
 
-        self.frame1 = tk.Frame(master=self, bg=self.bkgc)
-
         # --Label for the source path:
         self.labelOrig = tk.Label(
-            master=self.frame1, text='Path to source directory:',
+            master=self.frame, text='Path to source directory:',
             font=self.font_choice, bg=self.bkgc
             )
         self.labelOrig.configure(fg=self.letterc)
 
         # --Entry box for the source path:
         self.entryOrig = tk.Entry(
-            master=self.frame1,
+            master=self.frame,
             font=self.font_choice,
             width=600, bg=self.boxc, border=0, disabledbackground=self.boxc,
             highlightthickness=0
@@ -85,14 +83,14 @@ class GUI(tk.Tk):
 
         # --Label for the destination path:
         self.labelDest = tk.Label(
-            master=self.frame1, text='Save in path:',
+            master=self.frame, text='Save in path:',
             font=self.font_choice, bg=self.bkgc
             )
         self.labelDest.configure(fg=self.letterc)
 
         # --Entry box for the destination path:
         self.entryDest = tk.Entry(
-            master=self.frame1,
+            master=self.frame,
             font=self.font_choice,
             width=600, bg=self.boxc, border=0, disabledbackground=self.bkgc,
             highlightthickness=0, readonlybackground=self.boxc
@@ -101,17 +99,17 @@ class GUI(tk.Tk):
 
         # --Label for the channel name:
         self.labelChannel = tk.Label(
-            master=self.frame1, text='Slack channel:',
+            master=self.frame, text='Slack channel:',
             font=self.font_choice, bg=self.bkgc
             )
         self.labelChannel.configure(fg=self.letterc)
 
         # --Option Menu for the available channels in the source path:
         self.default_str_channel = '  '   # Default value
-        self.channel_var = tk.StringVar(self.frame1)
+        self.channel_var = tk.StringVar(self.frame)
         self.channel_var.set(self.default_str_channel)
         self.Channel = tk.OptionMenu(
-            self.frame1,
+            self.frame,
             self.channel_var,
             value=[self.default_str_channel]
             )
@@ -126,7 +124,7 @@ class GUI(tk.Tk):
         self.channels_flag_var = tk.BooleanVar()
         self.channels_flag_var.set(False)
         self.checkbox_channels = tk.Checkbutton(
-            master=self.frame1, variable=self.channels_flag_var,
+            master=self.frame, variable=self.channels_flag_var,
             text=' Export general information of all the Slack channels',
             font=self.font_choice, fg=self.letterc,
             bg=self.bkgc, disabledforeground=self.bkgc,
@@ -140,7 +138,7 @@ class GUI(tk.Tk):
         self.users_flag_var = tk.BooleanVar()
         self.users_flag_var.set(False)
         self.checkbox_users = tk.Checkbutton(
-            master=self.frame1, variable=self.users_flag_var,
+            master=self.frame, variable=self.users_flag_var,
             text=' Export general information of all the Slack users',
             font=self.font_choice, fg=self.letterc,
             bg=self.bkgc, disabledforeground=self.bkgc,
@@ -151,43 +149,43 @@ class GUI(tk.Tk):
             )
 
         # --Label for showing error/update messages of the status of the code:
-        self.txt = ' '
         self.labelError = tk.Label(
-            master=self.frame1, text=self.txt,
+            master=self.frame, text=' ',
             font=self.font_choice, bg=self.bkgc,
-            width=600, wraplength=360, height=5
+            width=600, wraplength=500, height=5
             )
         self.labelError.configure(fg=self.letterc)
 
-        # --Button. Triggers error messages if information is incomplete
-        # --otherwise, it executes the analysis:
-        self.button = tk.Button(
-            self.frame1, text='OK', command=self.check_inputs_exists,
+        # --Buttons
+        self.frameButtons = tk.Frame(self.frame)
+        self.buttonOK = tk.Button(
+            self.frame, text='Update', command=self.check_inputs_exists,
             font=self.font_choice,
             border=0, highlightcolor=self.darkB, highlightbackground=self.bkgc
             )
-        self.button.configure(bg=self.darkB, fg=self.letterc)
+        self.buttonOK.configure(bg=self.darkB, fg=self.letterc)
+        self.buttonContinue = tk.Button(
+            self.frame, text='Download', command=self.check_inputs_exists,
+            font=self.font_choice,
+            border=0, highlightcolor=self.darkB, highlightbackground=self.bkgc
+            )
+        self.buttonContinue.configure(bg=self.darkB, fg=self.letterc, state='disabled')
 
-        # --Pack widgets in desired order, sandwiching optionMenu in the middle
-        # --First in descending order, widgets that are before the optionMenu:
-        self.frame.pack(pady=5, padx=5, fill='both', expand=True, side='top')
-        self.label.pack(pady=5, padx=5, side='top')
-        self.frame1.pack(pady=6, padx=10, anchor='n', side='top')
-        self.labelOrig.pack(padx=5, pady=0, anchor='w', side='top')
-        self.entryOrig.pack(padx=5, pady=6, side='top')
-        tk.Frame(self.frame1, height=15, bg=self.bkgc).pack()
-        self.labelDest.pack(padx=5, pady=0, anchor='w', side='top')
-        self.entryDest.pack(padx=5, pady=6, side='top')
-        tk.Frame(self.frame1, height=15, bg=self.bkgc).pack()
-        self.labelChannel.pack(padx=5, pady=0, anchor='w', side='top')
-        # --Then the optionMenu:
-        self.Channel.pack(padx=5, pady=6, anchor='w')
-        # --Then widgets after the optionMenu, in reverse order bottom-top:
-        self.button.pack(padx=5, pady=10, side='bottom')
-        self.labelError.pack(padx=5, pady=10, side='bottom')
-        self.checkbox_users.pack(padx=5, pady=5, anchor='w', side='bottom')
-        self.checkbox_channels.pack(padx=5, pady=5, anchor='w', side='bottom')
-        tk.Frame(self.frame1, height=15, bg=self.bkgc).pack(side='bottom')
+        # --Pack widgets in desired order:
+        pad_x = 15
+        self.frame.pack(padx=pad_x, pady=10, fill='both', expand=True, side='top')
+        self.label.pack(padx=pad_x, pady=(15,25))
+        self.labelOrig.pack(padx=pad_x, pady=0, after=self.label, anchor='w')
+        self.entryOrig.pack(padx=pad_x, pady=(0,15), after=self.labelOrig, anchor='w')
+        self.labelDest.pack(padx=pad_x, pady=0, anchor='w')
+        self.entryDest.pack(padx=pad_x, pady=(0,15), after=self.labelDest, anchor='w')
+        self.labelChannel.pack(padx=pad_x, pady=0, anchor='w')
+        self.Channel.pack(padx=pad_x, after=self.labelChannel, anchor='w')
+        self.checkbox_channels.pack(padx=pad_x, pady=(25,0), after=self.Channel, anchor='w')
+        self.checkbox_users.pack(padx=pad_x, pady=5, after=self.checkbox_channels, anchor='w')
+        self.labelError.pack(padx=pad_x, pady=10, after=self.checkbox_users, anchor='s')
+        self.buttonOK.pack(padx=5, pady=(10,15), after=self.labelError, side='right', anchor='s')
+        self.buttonContinue.pack(padx=5, pady=(10,15), after=self.labelError, side='right', anchor='s')
 
         self.mainloop()
 
@@ -217,6 +215,10 @@ class GUI(tk.Tk):
         self.path_orig = str(self.entryOrig.get()).replace('"', '')
         self.path_dest = str(self.entryDest.get()).replace('"', '')
         self.channel_var_get = str(self.channel_var.get())
+        self.channels_flag = str(self.channels_flag_var.get())
+        self.users_flag = str(self.users_flag_var.get())
+        print(f"AG: channels_flag = {str(self.channels_flag_var.get())}")
+        print(f"AG: users_flag = {str(self.users_flag_var.get())}")
 
         # --1. Verify source path:
         if self.path_orig == '':
@@ -261,7 +263,7 @@ class GUI(tk.Tk):
                         self.channel_var = tk.StringVar()
                         self.channel_var.set(self.default_str_channel)
                         self.Channel = tk.OptionMenu(
-                            self.frame1,
+                            self.frame,
                             self.channel_var,
                             *channels_names
                             )
@@ -278,7 +280,7 @@ class GUI(tk.Tk):
                             activebackground='gray',
                             activeforeground=self.letterc,
                             border=0, borderwidth=0)
-                        self.Channel.pack(padx=5, pady=10)
+                        self.Channel.pack(padx=15, pady=0, after=self.labelChannel)
 
                         self.txt = 'Please enter a Slack channel'
                         self.labelError.configure(text=self.txt)
@@ -287,71 +289,81 @@ class GUI(tk.Tk):
                     else:
                         print('All input information provided')
                         print('Checking consistency')
-
-                        inspect_source = messages.InspectSource(
-                            self.channel_var_get,
-                            self.path_orig, self.path_dest
-                            )
-                        save_in_path = inspect_source.save_in_path()
-                        inspect_source.check_save_path_exists(save_in_path)
-                        inspect_source.check_expected_files_exists()
-                        channels_names = inspect_source.get_channels_names()
-
-                        self.build_input_file(
-                            self.channel_var_get,
-                            self.path_orig, self.path_dest,
-                            self.channels_flag_var, self.users_flag_var
-                            )
-                        self.txt = "Downloading..."
+                        self.txt = ' '
                         self.labelError.configure(text=self.txt)
-                        print(self.txt)
-                        self.Channel.configure(state='disable')
-                        self.entryOrig.configure(state='disable')
-                        self.entryDest.configure(state='disable')
+                        self.buttonOK.configure(state='disabled')
+                        self.buttonContinue.configure(state='normal', command=self.setup_inputs)
 
-                        self.startDownload()
 
-    def update_option_menu(self):
-        menu = self.om["menu"]
-        menu.delete(0, "end")
-        for string in self.options:
-            menu.add_command(label=string,
-                             command=lambda value=string: self.om_variable.set(value))
+    def setup_inputs(self):
+        """ Inspects the directories and creates the inputs.py file """
+        inspect_source = messages.InspectSource(
+            self.channel_var_get,
+            self.path_orig, self.path_dest
+            )
+        save_in_path = inspect_source.save_in_path()
+        inspect_source.check_save_path_exists(save_in_path)
+        inspect_source.check_expected_files_exists()
+        channels_names = inspect_source.get_channels_names()
+
+        # --Generate inputs.py file:
+        if self.channel_var_get == 'All channels':
+            self.channel_var_get = ''
+        self.build_input_file(
+            self.channel_var_get,
+            self.path_orig, self.path_dest,
+            self.channels_flag, self.users_flag
+        )
+        
+        # --Update visual interface label and button.
+        self.Channel.configure(state='disable')
+        self.entryOrig.configure(state='disable')
+        self.entryDest.configure(state='disable')
+        self.buttonContinue.configure(state='disable')
+
+        # --Trigger main analysis:
+        self.startDownload()
 
     def startDownload(self):
-        """ Changes update message and disables the user's inputs. """
-        if self.txt == "Downloading...":
-            self.labelError.configure(text="Downloading...")
-            self.button.configure(state='disabled', command=self.close_window)
-            # --Delay the update of the label Error and the Button:
-            self.after(1000, self.execute_analysis)
+        """ Changes update message and executes the analysis"""
+        self.labelError.configure(text="Downloading. This can take a moment.")
+        self.after(1000, self.execute_analysis)
 
     def execute_analysis(self):
         """ Executes the main functions in the messages module. """
-        scu = messages.SlackChannelsAndUsers(
-            self.channel_var_get, self.channels_flag_var, self.users_flag_var,
-            self.path_orig, self.path_dest
+        try:
+            scu = messages.SlackChannelsAndUsers(
+                self.channel_var_get, self.channels_flag_var, self.users_flag_var,
+                self.path_orig, self.path_dest
             )
-        scu.get_all_channels_info()
-        scu.get_all_users_info()
+            scu.get_all_channels_info()
+            scu.get_all_users_info()
 
-        # --From the class SlackMessages:
-        sm = messages.SlackMessages(
-            self.channel_var_get, self.channels_flag_var, self.users_flag_var,
-            self.path_orig, self.path_dest
+            # --From the class SlackMessages:
+            sm = messages.SlackMessages(
+                self.channel_var_get, self.channels_flag_var, self.users_flag_var,
+                self.path_orig, self.path_dest
             )
-        sm.get_all_messages_df()
+            sm.get_all_messages_df()
 
-        self.after(500, self.end)
-
-    def end(self):
-        """ Change button's text to "Done" and allows to close the GUI. """
-        self.labelError.configure(text="Download completed")
-        self.button.configure(
-            text="Done",
-            state='active',
-            command=self.close_window
+            # --Update GUI:
+            full_path = os.path.join(self.path_dest, dest_name_ext)
+            self.labelError.configure(text=f'Download completed. Your files were saved in \n "{full_path}"')
+            self.buttonContinue.configure(
+                text="Done",
+                state='normal',
+                command=self.close_window
             )
+        
+        except:
+            # --Update GUI:
+            self.labelError.configure(text="An error occured")
+            self.buttonContinue.configure(
+                text="Exit",
+                state='normal',
+                command=self.close_window
+            )
+
 
     def close_window(self):
         self.withdraw()
