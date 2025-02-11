@@ -510,7 +510,7 @@ class SlackMessages:
                 urls_string = ' ;  '.join(urls)
                 df.at[i, 'URL(s)'] = urls_string
             else:
-                df.at[i, 'URL(s)'] = ""
+                df.at[i, 'URL(s)'] = missing_value
 
     def user_id_to_name(self, df_messages, df_users):
         """Replaces the user_id in the format <@U12345678> to the user's
