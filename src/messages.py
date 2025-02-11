@@ -700,9 +700,13 @@ class SlackMessages:
                 channel_messages_df.sort_values(
                     by='msg_date', inplace=True, ignore_index=True
                     )
+                print(
+                    curr_channel_name, datetime.now().time(),
+                    ' Rows sorted by msg_date'
+                    )
 
                 # --Parse checkins if applicable & reorder columns:
-                if curr_channel_name == 'think-biver-sunday-checkins':
+                if curr_channel_name == checkin_channel_name:
                     channel_messages_df = checkins.parse_nrows(
                         channel_messages_df, self.missing_value
                         )
@@ -712,6 +716,10 @@ class SlackMessages:
                         'plans_for_following_week', 'meetings']
                     channel_messages_df = self.drop_extra_unparsed_rows(
                         channel_messages_df
+                        )
+                    print(
+                        curr_channel_name, datetime.now().time(),
+                        ' Check-in messages parsed \n'
                         )
                 else:
                     column_names_checkins = []
