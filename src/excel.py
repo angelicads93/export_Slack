@@ -15,18 +15,27 @@ class ExcelFormat():
         self.wb = load_workbook(self.file_path)
         self.ws = self.wb.active
 
+        self.columns_metadata = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
+        self.columns_wkrep = ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+
     def set_cell_width(self):
         """ Sets the cell width of each column in the Excel table """
-        w = 30
+        w_date = 19
+        w_name = 19
+        w_text = 30
+        w_bool = 7
+        w_count = 8
         column_widths = {
-            'msg_id': 12, 'msg_date': 19, 'user': 15, 'name': 19,
-            'display_name': 19, 'deactivated': 7, 'is_bot': 7, 'type': 8,
-            'text': 35, 'reply_count': 5, 'reply_users_count': 5,
-            'latest_reply_date': 19, 'thread_date': 19, 'parent_user_id': 25,
-            'URL(s)': 37, 'projects_parsed': 8,
-            'project_name': w, 'working_on': w, 'progress_and_roadblocks': w,
-            'progress': w, 'roadblocks': w, 'plans_for_following_week': w,
-            'meetings': w
+            'msg_id': 12, 'msg_date': w_date, 'user': 15, 'name': w_name,
+            'display_name': w_name, 'deactivated': w_bool, 'is_bot': w_bool,
+            'type': 8, 'text': w_text, 'reply_count': w_count,
+            'reply_users_count': w_count, 'latest_reply_date': w_date,
+            'thread_date': w_date, 'parent_user_name': w_name,
+            'URL(s)': w_text, 'projects_parsed': w_count,
+            'project_name': w_text, 'working_on': w_text,
+            'progress_and_roadblocks': w_text, 'progress': w_text,
+            'roadblocks': w_text, 'plans_for_following_week': w_text,
+            'meetings': w_text
         }
         for col, width in column_widths.items():
             for cell in self.ws[1]:
@@ -45,14 +54,13 @@ class ExcelFormat():
         fill_thread = PatternFill(
             start_color="FBFB99", end_color="FBFB99", fill_type="solid"
             )
-        last_row = self.ws.max_row
 
         if include_checkins is True:
-            checkin_columns = ['Q', 'R', 'S', 'T', 'U', 'V', 'W']
+            checkin_columns = self.columns_wkrep
         else:
             checkin_columns = []
 
-        for i in range(2, last_row + 1):
+        for i in range(2, self.ws.max_row + 1):
             # --Coloring 'is_bot' cells:
             if self.ws[f'g{i}'].value == "True" \
                     or self.ws[f'g{i}'].value is True:
@@ -113,24 +121,32 @@ class ExcelFormat():
                 cell.alignment = Alignment(vertical='top')
 
     def set_format_first_row(self):
-        """" Colors the first row of the table, with the column labels. """
+        """" Formats the first row of the table, with the column labels. """
         # --Freeze the first row (Row 1):
         self.ws.freeze_panes = 'A2'
-        # --Set font size and bold for the first row:
-        font = Font(size=9, bold=True)
         # --Set the height of the first row:
         self.ws.row_dimensions[1].height = 43
         # --Define the RGB color:
         fill = PatternFill(
             start_color="e7c9fb", end_color="e7c9fb", fill_type="solid"
             )
+        fill_wkrep_titles = PatternFill(
+            start_color="CDB5B7", end_color="CDB5B7", fill_type="solid"
+            )
         # --Apply the color and font formatting to the 1st row (Header row):
         for cell in self.ws[1]:
-            cell.font = font
-            cell.fill = fill
+            # --Set the cell color:
+            letter = get_column_letter(cell.column)
+            if letter in self.columns_metadata:
+                cell.fill = fill
+            elif letter in self.columns_wkrep:
+                cell.fill = fill_wkrep_titles
+            # --Set the cell alignment:
             cell.alignment = Alignment(
                 wrap_text=True, vertical="top", horizontal="left"
                 )
+            # --Set the cell font:
+            cell.font = Font(size=9, bold=True)
 
     def rename_sheet(self):
         """ Rename the Excel file. """
