@@ -16,7 +16,7 @@ import excel
 import clean
 import checkins
 from settings import missing_value, timezone, dest_name_ext, \
-    channels_json_name, users_json_name, checkin_channel_name
+    channels_json_name, users_json_name
 # --NOTE:
 # --Default value of channels_json_name is channels.json
 # --Default value of users_json_name is users.json
@@ -608,9 +608,7 @@ class SlackMessages:
         """ Most generally, it iterates over all the Slack channels and
         extracts the messages of each channel and saves them in a formated
         Excel file. Only one channel is analyzed if the user specifies so in
-        the input file. If the channel is "think-biver-sunday-checkins", then
-        the weekly reports are also parsed and stored in the corresponding
-        Excel file.
+        the input file.
         """
         if self.continue_analysis is False:
             print("Please review the input information")
@@ -705,24 +703,17 @@ class SlackMessages:
                     ' Rows sorted by msg_date'
                     )
 
-                # --Parse checkins if applicable & reorder columns:
-                if curr_channel_name == checkin_channel_name:
-                    channel_messages_df = checkins.parse_nrows(
-                        channel_messages_df, self.missing_value
-                        )
-                    column_names_checkins = [
-                        'projects_parsed', 'project_name', 'working_on',
-                        'progress_and_roadblocks', 'progress', 'roadblocks',
-                        'plans_for_following_week', 'meetings']
-                    channel_messages_df = self.drop_extra_unparsed_rows(
-                        channel_messages_df
-                        )
-                    print(
-                        curr_channel_name, datetime.now().time(),
-                        ' Check-in messages parsed \n'
-                        )
-                else:
-                    column_names_checkins = []
+                # --Parse for check-in messages:
+                channel_messages_df = checkins.parse_nrows(
+                    channel_messages_df, self.missing_value
+                    )
+                channel_messages_df = self.drop_extra_unparsed_rows(
+                    channel_messages_df
+                    )
+                column_names_checkins = [
+                    'projects_parsed', 'project_name', 'working_on',
+                    'progress_and_roadblocks', 'progress', 'roadblocks',
+                    'plans_for_following_week', 'meetings']
                 column_names_order = ['msg_id', 'msg_date', 'user', 'name',
                                       'display_name', 'deactivated', 'is_bot',
                                       'type', 'text', 'reply_count',
@@ -730,6 +721,10 @@ class SlackMessages:
                                       'thread_date', 'parent_user_name',
                                       'URL(s)'] + column_names_checkins
                 channel_messages_df = channel_messages_df[column_names_order]
+                print(
+                    curr_channel_name, datetime.now().time(),
+                    ' Check-in messages parsed \n'
+                    )
 
                 # --Write channel_messages_df to a .xlsx file:
                 channel_messages_mindate = channel_messages_df['msg_date'].min().split(" ")[0]
@@ -739,15 +734,12 @@ class SlackMessages:
                 channel_messages_df.to_excel(
                     f"{channel_messages_folder_path}", index=False
                     )
-                # excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments()
-                if curr_channel_name == {checkin_channel_name}:
-                    excel.ExcelFormat(
-                        channel_messages_folder_path, curr_channel_name
-                        ).excel_adjustments(include_checkins=True)
-                else:
-                    excel.ExcelFormat(
-                        channel_messages_folder_path, curr_channel_name
-                        ).excel_adjustments(include_checkins=False)
+                
+                # --Apply Excel adjustments:
+                # excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments()               
+                excel.ExcelFormat(
+                    channel_messages_folder_path, curr_channel_name
+                    ).excel_adjustments(include_checkins=True)
                 print(
                     curr_channel_name, datetime.now().time(),
                     ' Wrote curated messages to xlsx files \n'
