@@ -70,8 +70,8 @@ class InspectSource:
                 print(
                     f"The path '{path} already exists and it will be replaced."
                     )
-                chmod(exprt_folder_path, stat.S_IRWXU)
-                # shutil.rmtree(exprt_folder_path)
+                #chmod(exprt_folder_path, stat.S_IRWXU)
+                shutil.rmtree(exprt_folder_path)
         Path(f"{path}").mkdir(parents=True, exist_ok=True)
 
     def check_format_of_json_names(self, list_names):
@@ -700,7 +700,7 @@ class SlackMessages:
                     )
                 print(
                     curr_channel_name, datetime.now().time(),
-                    ' Rows sorted by msg_date'
+                    ' Sorted rows by msg_date'
                     )
 
                 # --Parse for check-in messages:
@@ -723,7 +723,7 @@ class SlackMessages:
                 channel_messages_df = channel_messages_df[column_names_order]
                 print(
                     curr_channel_name, datetime.now().time(),
-                    ' Check-in messages parsed \n'
+                    ' Parsed check-in messages \n'
                     )
 
                 # --Write channel_messages_df to a .xlsx file:
@@ -734,9 +734,9 @@ class SlackMessages:
                 channel_messages_df.to_excel(
                     f"{channel_messages_folder_path}", index=False
                     )
-                
+
                 # --Apply Excel adjustments:
-                # excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments()               
+                # excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments()
                 excel.ExcelFormat(
                     channel_messages_folder_path, curr_channel_name
                     ).excel_adjustments(include_checkins=True)
@@ -750,4 +750,3 @@ class SlackMessages:
         print(datetime.now().time(), 'Done')
 
         return channel_messages_df
-
