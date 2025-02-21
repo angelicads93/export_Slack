@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import inputs
 
-# --Change current_working_directory to src/ and access all the modules:
-import os, sys
-sys.path.append(os.path.join(os.getcwd(), 'src'))
-from src import messages
+import os
+import sys
+parent_dir = os.path.dirname(os.getcwd())
+sys.path.append(parent_dir)
+sys.path.append(os.path.join(parent_dir, 'src'))
+
+import inputs
+import messages
 
 slackexport_folder_path = inputs.slackexport_folder_path
 
@@ -24,7 +27,7 @@ inspect_source.check_save_path_exists(save_in_path)
 inspect_source.check_expected_files_exists()
 # --Retrieve variables:
 channels_names = inspect_source.get_channels_names()
-all_channels_jsonFiles_dates = inspect_source.all_channels_jsonFiles_dates
+all_channels_jsonFiles_dates = inspect_source.get_all_channels_json_names()
 
 
 # --Initialize constructor of the class SlackChannelAndUsers:

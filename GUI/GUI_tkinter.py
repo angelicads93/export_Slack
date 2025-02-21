@@ -6,8 +6,13 @@ Created on Sun Oct 27 19:36:24 2024
 """
 
 import tkinter as tk
+import sys
 import os
-from os.path import exists
+from os.path import exists, dirname, join
+
+parent_dir = dirname(os.getcwd())
+sys.path.append(parent_dir)
+sys.path.append(join(parent_dir, 'src'))
 import messages
 from settings import dest_name_ext, channels_json_name, users_json_name
 
@@ -568,7 +573,7 @@ class GUI(tk.Tk):
             sm.get_all_messages_df()
 
             # --Update GUI:
-            full_path = os.path.join(self.path_dest, dest_name_ext)
+            full_path = join(self.path_dest, dest_name_ext)
             self.reset_widgets()
             self.configure_widgets_int(
                 [self.Channel], 'normal', self.font_base
