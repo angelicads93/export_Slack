@@ -1,5 +1,3 @@
-Here you can find the instructions to set up and use the code export_Slack from Visual Studio Code.
-
 #### To download and open the source code in Visual Studio Code:
 * [Visit the main page of the GitHub repository](https://github.com/angelicads93/export_Slack), click on the green button “<>code” and select the option “Download ZIP”.
 * Unzip and save this folder in the directory of your choice.
@@ -56,9 +54,6 @@ Here you can find the instructions to set up and use the code export_Slack from 
 * From your explorer tab, open the files `inputs.py` and `settings.py`.
 * Specify your choices. Among your inputs, you would need to indicate the absolute path to the directories where the source information is and the absolute path where you wish to save the output of this analysis. If you are working from Windows, you can obtain the absolute path of a directory by first using Windows File Explorer to navigate to the desired folder, right-click on it, select "Copy as path" and paste this absolute path into the corresponding entry of the `inputs.py` file.
 * Save the changes.
-<p align="center">
-  <img src="../images/inputs.png" alt="Edit inputs" style="width:50%"; height:auto>
-</p>
 
 #### To run the analysis:
 * From the terminal, change to the directory VScode with
@@ -66,8 +61,8 @@ Here you can find the instructions to set up and use the code export_Slack from 
 cd .\VScode\
 ```
 <p align="center">
-  <img src="../images/to_VScode.png" alt="cd to VScode" style="width:46%"; height:auto>
-  <img src="../images/in_VScode.png" alt="in VScode" style="width:46%"; height:auto>
+  <img src="../images/to_vscode.png" alt="cd to VScode" style="width:46%"; height:auto>
+  <img src="../images/in_vscode.png" alt="in VScode" style="width:46%"; height:auto>
 </p>
 * Execute the analysis with the command
   ```{script}
@@ -83,7 +78,7 @@ After you have finished using exportSlack, you can deactivate the virtual enviro
 deactivate
 ```
 <p align="center">
-  <img src="../images/deactivate.png" alt="Deactivate" style="width:46% height:auto>
-  <img src="../images/deactivated.png" alt="Deactivated" style="width:46% height:auto>
+  <img src="../images/deactivate.png" alt="Deactivate" style="width:46%"; height:auto>
+  <img src="../images/deactivated.png" alt="Deactivated" style="width:46%"; height:auto>
 </p>
 
