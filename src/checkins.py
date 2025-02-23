@@ -4,7 +4,9 @@
 import pandas as pd
 import numpy as np
 import clean
-from settings import all_keywords, keywords_dictionary, index_keyword, sample_text_list
+from settings import all_keywords, keywords_dictionary, index_keyword, \
+    sample_text_list
+
 
 def match_to_category(line, category_name):
     """ Returns True if the category_name matches the text before ':' in
@@ -114,9 +116,9 @@ def create_empty_df_with_categories(n_rows):
     The column index_ is for internal development of the code. It can be
     removed at the end.
     """
-    columns = list(all_keywords)+['projects_parsed', 'index_']
-    df = pd.DataFrame([[np.nan]*n_rows]*len(columns)).T
-    df.columns = columns
+    cols = list(all_keywords)+['projects_parsed', 'keywords_parsed', 'index_']
+    df = pd.DataFrame([[np.nan]*n_rows]*len(cols)).T
+    df.columns = cols
     df = df.astype('object')
     return df
 
@@ -133,33 +135,6 @@ def id_sample_msg(df):
             else:
                 df.loc[i, 'projects_parsed'] = ''
     return df
-
-
-def checkin_categories_to_df_1row(df, row_entry, text,
-                                  indices_start_of_category, category_names,
-                                  answers):
-    """ Fills the row of a dataframe with the text parsed into the categories:
-    project_name, progress_and_roadblocks, progress, roadblocks,
-    plans_for_following_week, meetings.
-    A subindex i={1,2,3} is added to the category labels allowing to fill the
-    report of more than one project, all in one row.
-    """
-    project_counter = 0
-    if len(indices_start_of_category) > 0:
-        for i in range(len(category_names)):
-            category_name = category_names[i]
-            if category_name == 'project_name':
-                project_counter += 1
-            if project_counter > 0:
-                for feature in all_keywords:
-                    if category_name == feature:
-                        column_name = f"{category_name}_{project_counter}"
-                        df.at[row_entry, column_name] = answers[i]
-                        break
-    return df
-
-
-def parse_1row(df):
     """ Returns a dataframe after parsing the text of each row.
     Multiple projects are stored in multiple columns in the dataframe,
     identified with a subindex i={1,2,3}.
@@ -196,6 +171,42 @@ def parse_1row(df):
     return parsed_df
 
 
+def projects_parsed_to_fraction(projects_parsed, i, sample_msg_indices):
+    """ Count projects_parsed as fractions of total projects """
+    if i in sample_msg_indices:
+        projects_parsed_str = 'sample'
+    if projects_parsed == 0:
+        projects_parsed_str = '0'
+    elif projects_parsed == 1:
+        projects_parsed_str = '1/1'
+    elif projects_parsed == 2:
+        projects_parsed_str = ['1/2', '2/2']
+    elif projects_parsed == 3:
+        projects_parsed_str = ['1/3', '2/3', '3/3']
+    return projects_parsed_str
+
+
+def keywords_parsed_to_fraction(projects_parsed, category_names):
+    keywords_parsed_str = []
+    if projects_parsed == 0:
+        keywords_parsed_str.append("0")
+    elif projects_parsed == 1:
+        keywords_parsed_str.append(
+            f"{len(category_names)}/{len(all_keywords)}"
+            )
+    elif projects_parsed > 1:
+        indices = []
+        for index, key in enumerate(category_names):
+            if key == index_keyword:
+                indices.append(index)
+        indices.append(index+1)
+        for i in range(len(indices)-1):
+            keywords_parsed_str.append(
+                f"{len(category_names[indices[i]:indices[i+1]])}/{len(all_keywords)}"
+                )
+    return keywords_parsed_str
+
+
 def checkin_categories_to_df_nrows(df, text,
                                    indices_start_of_category, category_names,
                                    answers):
@@ -224,42 +235,32 @@ def parse_nrows(df, missing_value):
     sample_msg_indices = df_tmp[df_tmp['projects_parsed'] == 'sample'].index
 
     for i in range(len(df)):
-
         # --Build the dataframe with the columns pertaining to a check-in
         # --message.
         text = df.at[i, 'text']
         indices_start_of_category, category_names = get_indices_of_lines_with_category_name(text)
         projects_parsed = count_index_keyword(category_names, index_keyword)
-        # --If the text is a 'sample' message:
-        if i in sample_msg_indices:
+        # --Create empty df with categories:
+        if projects_parsed == 0 or i in sample_msg_indices:
             df_i_blocks = create_empty_df_with_categories(1)
-            projects_parsed_srt = 'sample'
-        # --If no keywords were identified in the non-empty text:
-        elif len(indices_start_of_category) == 0:
-            df_i_blocks = create_empty_df_with_categories(1)
-            projects_parsed_srt = '0'
-        elif len(indices_start_of_category) > 0:
+        else:
+            df_i_blocks = create_empty_df_with_categories(projects_parsed)
+        # --Fill the empty df with categories:
+        if len(indices_start_of_category) > 0 and projects_parsed > 0:
             blocks_list = group_lines(text, indices_start_of_category)
             answers = extract_answers(blocks_list)
-            # --If index_keyword was not identified:
-            if projects_parsed == 0:
-                df_i_blocks = create_empty_df_with_categories(1)
-                projects_parsed_srt = '0'
-            # --If text was completely or partially parsed:
-            else:
-                df_i_blocks = create_empty_df_with_categories(projects_parsed)
-                df_i_blocks = checkin_categories_to_df_nrows(
-                    df_i_blocks, text, indices_start_of_category,
-                    category_names, answers
-                    )
-                # --Set the projects_parsed as fractions of total projects:
-                if projects_parsed == 1:
-                    projects_parsed_srt = '1/1'
-                elif projects_parsed == 2:
-                    projects_parsed_srt = ['1/2', '2/2']
-                elif projects_parsed == 3:
-                    projects_parsed_srt = ['1/3', '2/3', '3/3']
-        df_i_blocks['projects_parsed'] = projects_parsed_srt
+            df_i_blocks = checkin_categories_to_df_nrows(
+                df_i_blocks, text, indices_start_of_category,
+                category_names, answers
+                )
+        # --Count the number of projects and keywords parsed:
+        df_i_blocks['projects_parsed'] = projects_parsed_to_fraction(
+            projects_parsed, i, sample_msg_indices
+            )
+        df_i_blocks['keywords_parsed'] = keywords_parsed_to_fraction(
+            projects_parsed, category_names
+            )
+
         df_i_blocks['index_'] = i
         df_i_blocks = clean.handle_missing_values(df_i_blocks)
 

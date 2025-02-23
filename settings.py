@@ -100,7 +100,7 @@ column_widths = {
     'type': 8, 'text': w_text, 'reply_count': w_count,
     'reply_users_count': w_count, 'latest_reply_date': w_date,
     'thread_date': w_date, 'parent_user_name': w_name,
-    'URL(s)': w_text, 'projects_parsed': w_count,
+    'URL(s)': w_text, 'projects_parsed': w_count, 'keywords_parsed': w_count,
     'project_name': w_text, 'working_on': w_text,
     'progress_and_roadblocks': w_text, 'progress': w_text,
     'roadblocks': w_text, 'plans_for_following_week': w_text,
@@ -108,7 +108,7 @@ column_widths = {
 }
 # -----------------------------------------------------------------------------
 # 2. Set the alignment of cells containing long text:
-text_type_cols = ['I', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+text_type_cols = ['I', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
 #
 # -----------------------------------------------------------------------------
 # 3. Format the height, color, font alignment and size of the first column:
@@ -120,7 +120,7 @@ font_bold_1strow = True
 cell_color_1strow = [
     # ("color_code", [list the columns' letter])
     ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']),
-    ("CDB5B7", ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'])
+    ("CDB5B7", ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'])
 ]
 # -----------------------------------------------------------------------------
 # 4. Distinguish special columns by changing the color of their font:
@@ -146,7 +146,7 @@ highlights = [
     # 5.1. Highlight cases where the user is a bot.
     {"activate": True,
     "trigger": ["G", "==", True],
-    "columns": ["C", "D", "E", "F", "G", "P", "Q", "R", "S", "T", "U", "V", "W"],
+    "columns": ["C", "D", "E", "F", "G", "P", "Q", "R", "S", "T", "U", "V", "W", "X"],
     "cell_color": "FBBF8F",
     "font_size": 11,
     "font_bold": False,
@@ -155,7 +155,7 @@ highlights = [
     # 5.2. Highlight cases there the message is part of a thread.
     {"activate": True,
     "trigger": ["H", "==", "thread"],
-    "columns": ["H", "I", "P", "Q", "R", "S", "T", "U", "V", "W"],
+    "columns": ["H", "I", "P", "Q", "R", "S", "T", "U", "V", "W", "X"],
     "cell_color": "FBFB99",
     "font_size": 11,
     "font_bold": False,

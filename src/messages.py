@@ -711,9 +711,9 @@ class SlackMessages:
                     channel_messages_df
                     )
                 column_names_checkins = [
-                    'projects_parsed', 'project_name', 'working_on',
-                    'progress_and_roadblocks', 'progress', 'roadblocks',
-                    'plans_for_following_week', 'meetings']
+                    'projects_parsed', 'keywords_parsed', 'project_name',
+                    'working_on', 'progress_and_roadblocks', 'progress',
+                    'roadblocks', 'plans_for_following_week', 'meetings']
                 column_names_order = ['msg_id', 'msg_date', 'user', 'name',
                                       'display_name', 'deactivated', 'is_bot',
                                       'type', 'text', 'reply_count',
