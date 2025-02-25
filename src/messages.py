@@ -4,7 +4,7 @@
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir, chmod
+from os import listdir, chmod, rename
 from os.path import getmtime, exists, isdir
 from pathlib import Path
 import shutil
@@ -744,6 +744,9 @@ class SlackMessages:
                     curr_channel_name, datetime.now().time(),
                     ' Wrote curated messages to xlsx files \n'
                     )
+
+                # --Review name of file:
+                rename(channel_messages_folder_path, channel_messages_folder_path.replace(' ', '-'))
 
                 dfs_list.append(channel_messages_df)
 
