@@ -54,7 +54,9 @@ keywords_dictionary = {
     'project_name':
         ['project name', 'Current Project Name', 'project'],
     'working_on':
-        ['working on', 'working', 'what you are working on', 'worked on'],
+        ['working on', 'working', 'worked on', "What I'm working on",
+         'What you are working', 'what you are working on',
+         'current task', 'current_tasks', 'task', 'current focus'],
     'progress_and_roadblocks':
         ['progress and roadblocks', 'progress and roadblock',
         'progress &amp; roadblocks', 'Progress/Roadblocks',
@@ -65,7 +67,10 @@ keywords_dictionary = {
         ['roadblocks', 'roadblock'],
     'plans_for_following_week':
         ['plans for the following week', 'plans for next week',
-        'following week', 'next week', 'plans for the upcoming week'],
+         'Plans for the next week', 'following week', 'next week',
+         'plans for the upcoming week', 'Plans for the weeks',
+         'upcoming plans', 'Plans For Following Week',
+         'Plans for upcoming week', 'plan for next week'],
     'meetings':
         ['meetings', 'meet', 'met', "meetings you've attended",
         'upcoming meetings', 'meeting', 'Meeting attended', 'Meetings attended']
@@ -80,7 +85,8 @@ sample_text_list = [
     "We’re working on a volunteer tracking project for HR, centralizing all information in Salesforce",
     "<!channel> reposting <@U07FCQXU7Q9>'s message. Please adhere to it. THANK YOU.",
     "please follow this structure when posting updates",
-    "Reminder: Hey everyone! If you haven't already, don't forget to submit your weekly check-in no later than Saturday 11:59pm local time"
+    "Reminder: Hey everyone! If you haven't already, don't forget to submit your weekly check-in no later than Saturday 11:59pm local time",
+    "should include a summary of your accomplishments, ETC. (follow the outline below)"
 ]
 
 # ############################################################################
