@@ -106,7 +106,12 @@ def extract_answers(blocks_list):
                     break
             if line_matches is False:
                 answer_text += line
+        
+        if answer_text.lower() == 'none':
+            answer_text = 'none'
+        
         answers.append(answer_text)
+        
     return answers
 
 
