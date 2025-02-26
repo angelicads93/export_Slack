@@ -13,7 +13,7 @@ def match_to_category(line, category_name):
     the given line. Using "==" instead of "in" prevents 'roadblocks' to trigger
     both the categories roadblockc and progress_and_roadblocks simultaneously.
     """
-    line = line.lower().lstrip('*-•. ').rstrip('*-•. ')
+    line = line.lower().lstrip('*-•.◦ 1234567890').rstrip('*-•.◦ 1234567890')
     line = line.replace('*', '').replace(' ', '').replace('_', '')
     out = False
     for keyword in keywords_dictionary[category_name]:
@@ -100,15 +100,18 @@ def extract_answers(blocks_list):
             for category in all_keywords:
                 if match_to_category(line, category) is True:
                     answer_text += line.split(":")[1]
-                    answer_text = answer_text.lstrip('*-•. ').rstrip('*-•. ')
+                    answer_text = answer_text.lstrip('*-•.◦ 1234567890').rstrip('*-•.◦ 1234567890')
                     answer_text = answer_text.replace('*', '')
                     line_matches = True
                     break
             if line_matches is False:
                 answer_text += line
         
+        # --Check that answer is not being parsed as missing_value:
         if answer_text.lower() == 'none':
-            answer_text = 'none'
+            answer_text = 'none '
+        elif answer_text.lower() == 'n/a':
+            answer_text = 'n/a '
         
         answers.append(answer_text)
         
