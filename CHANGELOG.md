@@ -1,12 +1,19 @@
 # Change Log
 
+**02/26/2025:**
+* Replaced empty spaces with a dash when naming the Excel files in `main.py`. This is only a problem for channels starting with FC_.
+* Added first draft of Excel file with stats on weekly reports. The main script is in `src/stats.py` and the excel settings are in `settings_stats.py`. 
+Needed to geralized some aspects of the `excel.py` implementation to make it flexible and usable for both `main.py` and `stats.py`.
+* More exceptions were added to the reports parser.
+
 **02/21/2025:**
 Changed the structure of the git repo:
 * Input files `inputs.py` and `settings.py` are in the main repo directory.
 * There are now three folders for the variants: VScode, JupyterNotebook, and GUI.
 * `./VScode` has the Python script `main.py` and documentation on how to use it in VScode.
 * `./JupyterNotebook` has the notebook `main.ipynb`, which contains its documentation.
-* `./GUI` has the executable file slack2excel.exe, the python script `GUI_tkinter.py` with the main code of the graphic interface, and the subdirectory `tkGUI`, which is the output from generating the one-file executable app with pyinstaller.
+* `./GUI` has the executable file slack2excel.exe, the python script `GUI_tkinter.py` with the main code of the graphic interface, and the subdirectory `tkGUI`, 
+which is the output from generating the one-file executable app with pyinstaller.
 * The requirements.txt and the bash scripts were collected in the directory `./dependencies`.
 * Screenshots used to build documentation are stored in the directory `./images`.
 * Updated the README file.
