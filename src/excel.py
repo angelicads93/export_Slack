@@ -9,9 +9,9 @@ import settings
 
 
 class ExcelFormat():
-    def __init__(self, file_path, curr_channel_name):
+    def __init__(self, file_path):#, curr_channel_name):
         self.file_path = file_path
-        self.curr_channel_name = curr_channel_name
+        #self.curr_channel_name = curr_channel_name
         self.wb = load_workbook(self.file_path)
         self.ws = self.wb.active
 
@@ -98,7 +98,6 @@ class ExcelFormat():
                 min_row=2, max_row=self.ws.max_row):
             cell[0].font = Font(color=color)
 
-
     def format_text_cells(self, column_letter):
         """" Loop through each cell in column of type 'text' and replace CR+LF
         also, set alignments.
@@ -129,21 +128,22 @@ class ExcelFormat():
             for cell in row:
                 cell.alignment = Alignment(vertical=alignment_vertical)
 
-    def format_first_row(self):
+    def format_first_row(self, 
+                         height = 43,
+                         alignment_vertical = "top",
+                         alignment_horizontal = "left",
+                         font_size = 9, 
+                         font_bold = True,
+                         cell_color_1strow = [('FFFFFF', ["A"])]
+                         ):
         """" Formats the first row of the table, with the column labels. """
-        # --Set user's input:
-        height = int(settings.height_1strow)
-        alignment_vertical = str(settings.alignment_vert_1strow)
-        alignment_horizontal = settings.alignment_horiz_1strow
-        font_size = int(settings.font_size_1strow)
-        font_bold = bool(settings.font_bold_1strow)
 
         # --Freeze the first row (Row 1):
         self.ws.freeze_panes = 'A2'
         # --Set the height of the first row:
         self.ws.row_dimensions[1].height = height
         # --Apply the color and font formatting to the 1st row (Header row):
-        for color, columns in settings.cell_color_1strow:
+        for color, columns in cell_color_1strow:
             for col in columns:
                 cell = self.ws.cell(row=1, column=column_index_from_string(col))
                 # --Set the cell color:
@@ -158,29 +158,12 @@ class ExcelFormat():
                 # --Set the cell font:
                 cell.font = Font(size=font_size, bold=font_bold)
 
-    def rename_sheet(self):
-        """ Rename the Excel file. """
-        ws_title = self.curr_channel_name
-        ws_title = ws_title[:31]
-        self.ws.title = ws_title
 
     def save_changes(self):
         """" Save the file in given directory. """
         self.wb.save(self.file_path)
 
-    def excel_adjustments(self, include_checkins):
-        """ Applies all the Excel adjustments defined above. """
-        self.set_cell_width(settings.column_widths)
-        self.set_allignment('top')
-        self.format_first_row()
-        for cc in settings.font_color_in_column:
-            self.set_font_color_in_column(cc)
-        for highlight in settings.highlights:
-            self.format_highlight(highlight)
-        for column in settings.text_type_cols:
-            self.format_text_cells(column)
-        self.rename_sheet()
-        self.save_changes()
+    
 
     def IP_excel_adjustments(self):
         """ Excel file formatting/adjustments with  openpyxl.

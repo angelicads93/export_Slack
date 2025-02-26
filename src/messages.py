@@ -15,6 +15,7 @@ import re
 import excel
 import clean
 import checkins
+import settings
 from settings import missing_value, timezone, dest_name_ext, \
     channels_json_name, users_json_name
 # --NOTE:
@@ -603,7 +604,32 @@ class SlackMessages:
         df = df.drop(rows_to_drop)
         df = clean.reset_indices(df)
         return df
-
+    
+    def apply_excel_adjustments(self, file_path, settings_mod):
+        """ Defines the sequence of changes to be done in the Excel file 
+        given the user's inputs in the module settings_mod.
+        """
+        xl = excel.ExcelFormat(file_path)
+        xl.set_cell_width(settings_mod.column_widths)
+        xl.set_allignment('top')
+        xl.format_first_row(
+                settings_mod.height_1strow,
+                settings_mod.alignment_vert_1strow,
+                settings_mod.alignment_horiz_1strow,
+                settings_mod.font_size_1strow, 
+                settings_mod.font_bold_1strow,
+                settings_mod.cell_color_1strow            
+                )
+        for cc in settings_mod.font_color_in_column:
+            xl.set_font_color_in_column(cc)
+        for highlight in settings_mod.highlights:
+            xl.format_highlight(highlight)
+        for column in settings_mod.text_type_cols:
+            xl.format_text_cells(column)
+        xl.save_changes()
+        # --Review name of Excel file:
+        rename(file_path, file_path.replace(' ', '-'))
+        
     def get_all_messages_df(self):
         """ Most generally, it iterates over all the Slack channels and
         extracts the messages of each channel and saves them in a formated
@@ -734,19 +760,16 @@ class SlackMessages:
                 channel_messages_df.to_excel(
                     f"{channel_messages_folder_path}", index=False
                     )
+                print(f'## {channel_messages_folder_path}')
 
                 # --Apply Excel adjustments:
-                # excel.ExcelFormat(channel_messages_folder_path, curr_channel_name).IP_excel_adjustments()
-                excel.ExcelFormat(
-                    channel_messages_folder_path, curr_channel_name
-                    ).excel_adjustments(include_checkins=True)
+                self.apply_excel_adjustments(
+                    channel_messages_folder_path, settings
+                    )
                 print(
                     curr_channel_name, datetime.now().time(),
                     ' Wrote curated messages to xlsx files \n'
                     )
-
-                # --Review name of file:
-                rename(channel_messages_folder_path, channel_messages_folder_path.replace(' ', '-'))
 
                 dfs_list.append(channel_messages_df)
 
