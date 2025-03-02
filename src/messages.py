@@ -4,36 +4,37 @@
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir, chmod, rename
-from os.path import getmtime, exists, isdir
+from os import listdir, rename, getcwd
+from os.path import getmtime, exists, isdir, dirname
 from pathlib import Path
+import sys
+import importlib
 import shutil
-import stat
 from urlextract import URLExtract
 import re
 
 import excel
 import clean
 import checkins
-import settings_messages
 
-
-missing_value = settings_messages.missing_value
-timezone = settings_messages.timezone
-dest_name_ext = settings_messages.dest_name_ext
-channels_json_name = settings_messages.channels_json_name
-users_json_name = settings_messages.users_json_name
+parent_dir = dirname(getcwd())
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
 
 class InspectSource:
-    def __init__(self, chosen_channel_name,
-                 slackexport_folder_path, converted_directory):
-        self.missing_value = missing_value
-        self.chosen_channel_name = chosen_channel_name
-        self.slackexport_folder_path = slackexport_folder_path
-        self.converted_directory = converted_directory
+    def __init__(self, inputs, settings_messages):
 
-        self.continue_analysis = True
+        self.inputs = importlib.import_module(inputs)
+        self.chosen_channel_name = self.inputs.chosen_channel_name
+        self.slackexport_folder_path = self.inputs.slackexport_folder_path
+        self.converted_directory = self.inputs.converted_directory
+
+        self.settings_messages = importlib.import_module(settings_messages)
+        self.dest_name_ext = self.settings_messages.dest_name_ext
+        self.channels_json_name = self.settings_messages.channels_json_name
+        self.users_json_name = self.settings_messages.users_json_name
+        self.continue_analysis = self.settings_messages.continue_analysis
 
     def set_flag_analyze_all_channels(self):
         """ Sets a flag to keep track if one or all the channels are going to
@@ -61,7 +62,7 @@ class InspectSource:
         """ Adds the name extension to the specified path where
         to save the results.
         """
-        return f"{self.converted_directory}/{dest_name_ext}"
+        return f"{self.converted_directory}/{self.dest_name_ext}"
 
     def check_save_path_exists(self, path):
         """ Checks that the specified path where to store the output
@@ -73,7 +74,7 @@ class InspectSource:
                 print(
                     f"The path '{path} already exists and it will be replaced."
                     )
-                #chmod(exprt_folder_path, stat.S_IRWXU)
+                # chmod(exprt_folder_path, stat.S_IRWXU)
                 shutil.rmtree(exprt_folder_path)
         Path(f"{path}").mkdir(parents=True, exist_ok=True)
 
@@ -142,7 +143,7 @@ class InspectSource:
         """
         # --Get name of channels in channels.json:
         expected_channel_names = pd.read_json(
-            f"{self.slackexport_folder_path}/{channels_json_name}"
+            f"{self.slackexport_folder_path}/{self.channels_json_name}"
             )['name'].values
         # --Check that all the expected channels are in present channels:
         missing_channels = []
@@ -163,15 +164,15 @@ class InspectSource:
             self.continue_analysis = False
         else:
             # --Check that the channels.json files exists:
-            if exists(f"{self.slackexport_folder_path}/{channels_json_name}") is False:
+            if exists(f"{self.slackexport_folder_path}/{self.channels_json_name}") is False:
                 print(
-                    f'File {channels_json_name} was not found in the source directory'
+                    f'File {self.channels_json_name} was not found in the source directory'
                     )
                 self.continue_analysis = False
             # --Check that the users.json files exists:
-            if exists(f"{self.slackexport_folder_path}/{users_json_name}") is False:
+            if exists(f"{self.slackexport_folder_path}/{self.users_json_name}") is False:
                 print(
-                    f'File "{users_json_name}" was not found in the source directory'
+                    f'File "{self.users_json_name}" was not found in the source directory'
                     )
                 self.continue_analysis = False
             # --Get a list with the name of the channels to be converted:
@@ -195,20 +196,22 @@ class InspectSource:
 
 
 class SlackChannelsAndUsers:
-    def __init__(self, chosen_channel_name,
-                 write_all_channels_info, write_all_users_info,
-                 slackexport_folder_path, converted_directory
-                 ):
-        self.missing_value = missing_value
-        self.chosen_channel_name = chosen_channel_name
-        self.write_all_channels_info = write_all_channels_info
-        self.write_all_users_info = write_all_users_info
-        self.slackexport_folder_path = slackexport_folder_path
-        self.converted_directory = converted_directory
+    def __init__(self,  inputs, settings_messages):
 
-        self.inspect_source = InspectSource(
-            self.chosen_channel_name,
-            self.slackexport_folder_path, self.converted_directory)
+        self.inputs = importlib.import_module(inputs)
+        self.write_all_channels_info = self.inputs.write_all_channels_info
+        self.write_all_users_info = self.inputs.write_all_users_info
+        self.slackexport_folder_path = self.inputs.slackexport_folder_path
+        self.converted_directory = self.inputs.converted_directory
+
+        self.settings_messages = importlib.import_module(settings_messages)
+        self.missing_value = self.settings_messages.missing_value
+        self.timezone = self.settings_messages.timezone
+        self.dest_name_ext = self.settings_messages.dest_name_ext
+        self.channels_json_name = self.settings_messages.channels_json_name
+        self.users_json_name = self.settings_messages.users_json_name
+
+        self.inspect_source = InspectSource("inputs", "settings_messages")
         self.save_path = self.inspect_source.save_in_path()
         self.continue_analysis = self.inspect_source.continue_analysis
 
@@ -237,7 +240,7 @@ class SlackChannelsAndUsers:
         """
         # --Export channels.json to dataframe
         self.all_channels_df = pd.read_json(
-            f"{self.slackexport_folder_path}/{channels_json_name}"
+            f"{self.slackexport_folder_path}/{self.channels_json_name}"
             )
 
         # --Format relevant features on all_channels_df:
@@ -272,7 +275,7 @@ class SlackChannelsAndUsers:
 
         # --Handle missing values or empty strings:
         for feature in ['members', 'purpose']:
-            clean.replace_empty_space(self.all_channels_df, feature, missing_value)
+            clean.replace_empty_space(self.all_channels_df, feature, self.missing_value)
 
         # --Write all channel's info to .xlsx files, if requested by user:
         self.write_info_to_file(
@@ -299,7 +302,7 @@ class SlackChannelsAndUsers:
         """
         # --Read users.json as a dataframe:
         self.all_users_df = pd.read_json(
-            f"{self.slackexport_folder_path}/{users_json_name}"
+            f"{self.slackexport_folder_path}/{self.users_json_name}"
             )
 
         # --Keep relevant features on all_users_df:
@@ -320,7 +323,7 @@ class SlackChannelsAndUsers:
                 'display_name', 'name', 'team_id', 'id', 'profile_title',
                 'profile_real_name'
                 ]:
-            clean.replace_empty_space(self.all_users_df, feature, missing_value)
+            clean.replace_empty_space(self.all_users_df, feature, self.missing_value)
 
         # --Write all users's info to .xlsx files, if requested by user:
         self.write_info_to_file(
@@ -332,30 +335,23 @@ class SlackChannelsAndUsers:
 
 
 class SlackMessages:
-    def __init__(self, chosen_channel_name,
-                 write_all_channels_info, write_all_users_info,
-                 slackexport_folder_path, converted_directory):
-        self.missing_value = missing_value
-        self.timezone = timezone
-        self.chosen_channel_name = chosen_channel_name
-        self.write_all_channels_info = write_all_channels_info
-        self.write_all_users_info = write_all_users_info
-        self.slackexport_folder_path = slackexport_folder_path
-        self.converted_directory = converted_directory
+    def __init__(self, inputs, settings_messages):
 
-        self.inspect_source = InspectSource(
-            self.chosen_channel_name,
-            self.slackexport_folder_path, self.converted_directory)
+        self.inputs = importlib.import_module(inputs)
+        self.slackexport_folder_path = self.inputs.slackexport_folder_path
+
+        self.settings_messages = importlib.import_module(settings_messages)
+        self.missing_value = self.settings_messages.missing_value
+        self.timezone = self.settings_messages.timezone
+
+        self.inspect_source = InspectSource("inputs", "settings_messages")
         self.channels_names = self.inspect_source.get_channels_names()
         self.all_channels_jsonFiles_dates = self.inspect_source.get_all_channels_json_names()
         self.save_path = self.inspect_source.save_in_path()
         self.continue_analysis = self.inspect_source.continue_analysis
 
         self.slack_channels_users = SlackChannelsAndUsers(
-            self.chosen_channel_name,
-            self.write_all_channels_info, self.write_all_users_info,
-            self.slackexport_folder_path, self.converted_directory
-            )
+            "inputs", "settings_messages")
         self.all_users_df = self.slack_channels_users.get_all_users_info()
 
     def slack_json_to_dataframe(self, slack_json):
@@ -513,7 +509,7 @@ class SlackMessages:
                 urls_string = ' ;  '.join(urls)
                 df.at[i, 'URL(s)'] = urls_string
             else:
-                df.at[i, 'URL(s)'] = missing_value
+                df.at[i, 'URL(s)'] = self.missing_value
 
     def user_id_to_name(self, df_messages, df_users):
         """Replaces the user_id in the format <@U12345678> to the user's
@@ -766,7 +762,7 @@ class SlackMessages:
 
                 # --Apply Excel adjustments:
                 self.apply_excel_adjustments(
-                    channel_messages_folder_path, settings_messages
+                    channel_messages_folder_path, self.settings_messages
                     )
                 print(
                     curr_channel_name, datetime.now().time(),

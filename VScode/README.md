@@ -67,7 +67,7 @@ cd .\VScode\
 
 * Execute the analysis with the command
   ```{script}
-  python .\main.py
+  python .\main.py --inputs_file_path="..\inputs.py" --settings_file_path="..\settings_messages.py"
   ```
 <p align="center">
   <img src="../images/main.png" alt="Execute main" style="width:46%"; height:auto>
