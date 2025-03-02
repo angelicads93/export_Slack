@@ -4,8 +4,8 @@
 import pandas as pd
 import numpy as np
 import clean
-from settings import all_keywords, keywords_dictionary, index_keyword, \
-    sample_text_list
+from settings import missing_value, all_keywords, keywords_dictionary, \
+    index_keyword, sample_text_list
 
 
 def match_to_category(line, category_name):
@@ -270,14 +270,14 @@ def parse_nrows(df, missing_value):
             )
 
         df_i_blocks['index_'] = i
-        df_i_blocks = clean.handle_missing_values(df_i_blocks)
+        df_i_blocks = clean.handle_missing_values(df_i_blocks, missing_value)
 
         # --Build the dataframe with the original information and full text.
         # --Rows are dublicated as many times as projects in the check-in msg:
         df_i_text = pd.DataFrame([list(df.loc[i].values)]*len(df_i_blocks))
         df_i_text.columns = df.columns
         df_i_text['index'] = i
-        df_i_text = clean.handle_missing_values(df_i_text)
+        df_i_text = clean.handle_missing_values(df_i_text, missing_value)
 
         # --Horizontally concatenate df_i_text and df_i_blocks for i-th
         # --message:
@@ -285,7 +285,7 @@ def parse_nrows(df, missing_value):
             [df_i_text, df_i_blocks], axis=1, ignore_index=True
             )
         df_i_all.columns = list(df_i_text.columns) + list(df_i_blocks.columns)
-        df_i_all = clean.handle_missing_values(df_i_all)
+        df_i_all = clean.handle_missing_values(df_i_all, missing_value)
 
         # --Initialized the parsed_df dataframe if parsing the first row:
         if i == 0:

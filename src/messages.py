@@ -270,7 +270,7 @@ class SlackChannelsAndUsers:
 
         # --Handle missing values or empty strings:
         for feature in ['members', 'purpose']:
-            clean.replace_empty_space(self.all_channels_df, feature)
+            clean.replace_empty_space(self.all_channels_df, feature, missing_value)
 
         # --Write all channel's info to .xlsx files, if requested by user:
         self.write_info_to_file(
@@ -318,7 +318,7 @@ class SlackChannelsAndUsers:
                 'display_name', 'name', 'team_id', 'id', 'profile_title',
                 'profile_real_name'
                 ]:
-            clean.replace_empty_space(self.all_users_df, feature)
+            clean.replace_empty_space(self.all_users_df, feature, missing_value)
 
         # --Write all users's info to .xlsx files, if requested by user:
         self.write_info_to_file(
@@ -604,9 +604,9 @@ class SlackMessages:
         df = df.drop(rows_to_drop)
         df = clean.reset_indices(df)
         return df
-    
+
     def apply_excel_adjustments(self, file_path, settings_mod):
-        """ Defines the sequence of changes to be done in the Excel file 
+        """ Defines the sequence of changes to be done in the Excel file
         given the user's inputs in the module settings_mod.
         """
         xl = excel.ExcelFormat(file_path)
@@ -616,9 +616,9 @@ class SlackMessages:
                 settings_mod.height_1strow,
                 settings_mod.alignment_vert_1strow,
                 settings_mod.alignment_horiz_1strow,
-                settings_mod.font_size_1strow, 
+                settings_mod.font_size_1strow,
                 settings_mod.font_bold_1strow,
-                settings_mod.cell_color_1strow            
+                settings_mod.cell_color_1strow
                 )
         for cc in settings_mod.font_color_in_column:
             xl.set_font_color_in_column(cc)
@@ -629,7 +629,7 @@ class SlackMessages:
         xl.save_changes()
         # --Review name of Excel file:
         rename(file_path, file_path.replace(' ', '-'))
-        
+
     def get_all_messages_df(self):
         """ Most generally, it iterates over all the Slack channels and
         extracts the messages of each channel and saves them in a formated

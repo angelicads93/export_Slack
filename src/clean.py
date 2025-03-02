@@ -3,10 +3,9 @@
 
 import numpy as np
 import pandas as pd
-from settings import missing_value
 
 
-def replace_empty_space(df, column):
+def replace_empty_space(df, column, missing_value):
     """ Replaces empty spaces "" with the string missing_value for
     a given dataframe column
     """
@@ -15,14 +14,14 @@ def replace_empty_space(df, column):
             df.at[i, column] = missing_value
 
 
-def replace_NaN(df, column):
+def replace_NaN(df, column, missing_value):
     """ Replaces missing values with the string missing_value for
     a given dataframe column
     """
     df[column] = df[column].fillna(missing_value)
 
 
-def handle_missing_values(df):
+def handle_missing_values(df, missing_value):
     """ Replaces missing values in all the columns of the a dataframe"""
     df = df.replace(pd.NaT, missing_value)
     df = df.replace(np.nan, missing_value)

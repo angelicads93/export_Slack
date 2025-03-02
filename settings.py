@@ -64,7 +64,7 @@ keywords_dictionary = {
     'progress':
         ['progress'],
     'roadblocks':
-        ['roadblocks', 'roadblock'],
+        ['roadblocks', 'roadblock', 'challenges'],
     'plans_for_following_week':
         ['plans for the following week', 'plans for next week',
          'Plans for the next week', 'following week', 'next week',

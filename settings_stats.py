@@ -6,10 +6,39 @@ Created on Tue Feb 25 16:34:14 2025
 @author: agds
 """
 
+# --Syntax to use for missing values:
+missing_value = 'n/d'
+
+
+# ############################################################################
+# ############################################################################
+# ### DIRECTORIES AND FILE NAMES:
+# ##################################
+#
+# 1. Path where the exported Excel files are:
+excel_channels_path = '/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/_JSONs_converted'
+#
+# 2. Name of file with compilation of check-in weekly reports:
+compilation_reports_file_name = 'test_reports_v4.xlsx'
+#
+# 3. Path where the file compilation_reports_file_path will be saved:
+compilation_reports_path = '/home/agds/Desktop'
+
 # ############################################################################
 # ############################################################################
 # ### EXCEL FORMATTING:
 # #####################
+#
+# 0. Set the order of the columns in the Excel table:
+columns_order = ['channel', 'export_dates', 'parsed_reports_in_channel',
+                 'user', 'name', 'display_name', 'deactivated', 'is_bot',
+                 'msg_id', 'msg_date', 'type', 'text',
+                 'reply_count', 'reply_users_count', 'latest_reply_date',
+                 'thread_date', 'parent_user_name', 'URL(s)',
+                 'number_msgs_in_channel', 'projects_parsed',
+                 'keywords_parsed', 'latest_report_date', 'project_name',
+                 'working_on', 'progress_and_roadblocks', 'progress',
+                 'roadblocks', 'plans_for_following_week', 'meetings']
 #
 # 1. Change the width of the Excel cells:
 w_date = 19
@@ -18,13 +47,13 @@ w_text = 30
 w_bool = 7
 w_count = 8
 column_widths = {
-    'channel': w_text, 'report_dates': w_date, 'reports_in_channel': w_count,
+    'channel': w_text, 'export_dates': 25, 'parsed_reports_in_channel': w_count,
     'msg_id': 12, 'msg_date': w_date, 'user': 15, 'name': w_name,
     'display_name': w_name, 'deactivated': w_bool, 'is_bot': w_bool,
     'type': 8, 'text': w_text, 'reply_count': w_count,
     'reply_users_count': w_count, 'latest_reply_date': w_date,
     'thread_date': w_date, 'parent_user_name': w_name,
-    'URL(s)': w_text, 'number_msgs_in_channel': w_count, 
+    'URL(s)': w_text, 'number_msgs_in_channel': w_count,
     'projects_parsed': w_count, 'keywords_parsed': w_count,
     'project_name': w_text, 'working_on': w_text,
     'progress_and_roadblocks': w_text, 'progress': w_text,
@@ -79,8 +108,8 @@ highlights = [
     },
     # 5.2. Highlight cases where the message is part of a thread.
     {"activate": True,
-    "trigger": ["H", "==", "thread"],
-    "columns": ["H", "I", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC"],
+    "trigger": ["K", "==", "thread"],
+    "columns": ["K", "L", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC"],
     "cell_color": "FBFB99",
     "font_size": 11,
     "font_bold": False,

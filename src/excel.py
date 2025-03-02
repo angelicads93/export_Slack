@@ -29,7 +29,7 @@ class ExcelFormat():
     def apply_highlight_to_row(self, row, columns, cell_color, font_size,
                                font_bold, font_horiz_alignment):
         """ Changes the cell format of the input row and columns, given the
-        specified settings. 
+        specified settings.
         """
         for col in columns:
             self.ws[f'{col}{row}'].font = Font(size=font_size, bold=font_bold)
@@ -128,11 +128,11 @@ class ExcelFormat():
             for cell in row:
                 cell.alignment = Alignment(vertical=alignment_vertical)
 
-    def format_first_row(self, 
+    def format_first_row(self,
                          height = 43,
                          alignment_vertical = "top",
                          alignment_horizontal = "left",
-                         font_size = 9, 
+                         font_size = 9,
                          font_bold = True,
                          cell_color_1strow = [('FFFFFF', ["A"])]
                          ):
@@ -163,7 +163,7 @@ class ExcelFormat():
         """" Save the file in given directory. """
         self.wb.save(self.file_path)
 
-    
+
 
     def IP_excel_adjustments(self):
         """ Excel file formatting/adjustments with  openpyxl.
