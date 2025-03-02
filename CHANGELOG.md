@@ -1,9 +1,19 @@
 # Change Log
 
+**03/02/2025**
+* Improved the coding structure of the `stats.py` file and changed its location from `/src/stats.py` to `/VScode/stats.py`.
+* Renamed the settings file needed to generate the Excel files for each Slack channel from `settings.py` to `settings_messages.py`. (To be more explicit and avoid confusion with the `settings_stats.py` file)
+* The files with the user's inputs are now arguments that need to be specified when running the Python scripts. This required a few structural changes to the customized modules and the Jupyter notebook variant.
+The changes gives more flexibility when using the various modules and makes the code easily generalizable if it is needed to generate a new Excel file with different information. 
+The commands to be run in the terminal are now (the paths can be relative or absolute):
+  - python main.py --inputs_file_path="..\inputs.py" --seettings_file_path="..\settings_messages.py"
+  - python stats.py  --seettings_file_path="..\settings_stats.py"
+* Updated the documentation.
+
 **02/26/2025:**
 * Replaced empty spaces with a dash when naming the Excel files in `main.py`. This is only a problem for channels starting with FC_.
 * Added first draft of Excel file with stats on weekly reports. The main script is in `src/stats.py` and the excel settings are in `settings_stats.py`. 
-Needed to geralized some aspects of the `excel.py` implementation to make it flexible and usable for both `main.py` and `stats.py`.
+Needed to generalize some aspects of the `excel.py` implementation to make it flexible and usable for both `main.py` and `stats.py`.
 * More exceptions were added to the reports parser.
 
 **02/21/2025:**

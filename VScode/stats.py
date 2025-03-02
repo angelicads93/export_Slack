@@ -91,12 +91,11 @@ def check_input(compilation_reports_path, excel_channels_path):
         sys.exit()
 
 
-
 if __name__ == '__main__':
 
     # --Define argument parser routine:
     parser = argparse.ArgumentParser(
-        description = "Python script to compile all the weekly reports from individual Excel files."
+        description="Python script to compile all the weekly reports from individual Excel files."
         )
     parser.add_argument("--settings_file_path", required=True, type=str)
     args = parser.parse_args()
@@ -105,7 +104,6 @@ if __name__ == '__main__':
     if os.path.exists(settings_file_path) is False:
         print(f"ERROR: Path {settings_file_path} does not exists. Please review your input for the argument --settings_file_path.")
         sys.exit()
-
 
     # --Import settings module:
     parent_path = os.path.dirname(settings_file_path)
@@ -120,7 +118,6 @@ if __name__ == '__main__':
     print(f"Module {module_name} imported.")
 
     check_input(compilation_reports_path, excel_channels_path)
-
 
     # --Build dataframe from all the channels:
     for file in os.listdir(excel_channels_path):

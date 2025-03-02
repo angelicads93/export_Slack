@@ -50,8 +50,7 @@ The `settings_messages.py` file contains variables that define the formatting of
 |font_color_in_column | Distinguish special columns by changing the color of their font.| [("A", "0707C5"), ("E", "c10105")] |
 |highlights | Change the color and/or font on chosen cells based on a condition you wish to highlight.| {"activate": True/False, "trigger": ["column_letter", "condition", value], "columns": [list of columns to highlight], "cell_color": "color_code", "font_size": #, "font_bold": True/False, "font_horiz_alignment": "alignment_type"} |
 
-
-## Executing the analysis
+## Converting Slack workspace to Excel files
 
 The options available for using this analysis to generate the Excel databases of your Slack workspace are using Visual Studio Code, Jupyter Notebook, or an executable Windows application. To use the variants that require compiling the Python code when running the analysis, it is necessary to set up a virtual environment and install the required [dependencies](dependencies/requirements.txt). 
 
@@ -60,3 +59,14 @@ The options available for using this analysis to generate the Excel databases of
 **Jupyter Notebook:** Navigate to the directory [JupyterNotebook](JupyterNotebook) to access the file you can use in your Jupyter Notebook web app. This analysis variant also requires downloading the code and setting up a virtual environment. The notebook provides detailed instructions on how to do so. 
 
 **Graphic User Interface:** Navigate to the directory [GUI](GUI) to access the [executable file](GUI/slack2excel.exe) of the Windows visual interface. To use this application, download the executable file, run the app, and input the information prompted by the app. This is a standalone application, so you do not need to set up a virtual environment or manually specify your inputs into the files `inputs.py` or `settings_messages.py`. In the current version of the visual interface, the user only provides the information listed in the INPUTS table above. 
+
+
+## Compiling all the weekly reports to an Excel file
+
+Once all the Excel files have been generated, you have the option to compile the **parsed weekly reports** from all the channels into a new Excel file. To do so:
+1. Specify your formatting choices in the file `settings_stats.py`.
+2. If you are executing the analysis through VScode, run in your terminal (from the VScode directory)
+  ```{script}
+  python stats.py --settings_file_name="..\settings_stats.py"
+  ```
+  as explained in the [VScode documentation](VScode).
