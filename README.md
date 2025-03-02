@@ -16,7 +16,7 @@ In addition, it is customary for users of the Slack workspace to post their prog
 
 
 ## User's inputs
-The conditions or inputs to the code are specified in the files `inputs.py` and `settings.py`. 
+The conditions or inputs to the code are specified in the files `inputs.py` and `settings_messages.py`. 
 
 The `inputs.py` file contains the minimal information necessary to generate the Excel database of one or all Slack channels. 
 |INPUTS | Description| Example/Format |
@@ -27,7 +27,7 @@ The `inputs.py` file contains the minimal information necessary to generate the 
 |write_all_channels_info | True/False to generate a file with information on all the Slack channels. | True |
 |write_all_users_info | True/False to generate a file with the information of all the Slack users. | True |
 
-The `settings.py` file contains variables that define the formatting of the check-in messages and the Excel tables:
+The `settings_messages.py` file contains variables that define the formatting of the check-in messages and the Excel tables:
 |SETTINGS | Description |  Example/Format |
 |---|---|---|
 | timezone | Time zone to express the dates in the Excel tables. | "US/Central" |
@@ -59,4 +59,4 @@ The options available for using this analysis to generate the Excel databases of
 
 **Jupyter Notebook:** Navigate to the directory [JupyterNotebook](JupyterNotebook) to access the file you can use in your Jupyter Notebook web app. This analysis variant also requires downloading the code and setting up a virtual environment. The notebook provides detailed instructions on how to do so. 
 
-**Graphic User Interface:** Navigate to the directory [GUI](GUI) to access the [executable file](GUI/slack2excel.exe) of the Windows visual interface. To use this application, download the executable file, run the app, and input the information prompted by the app. This is a standalone application, so you do not need to set up a virtual environment or manually specify your inputs into the files `inputs.py` or `settings.py`. In the current version of the visual interface, the user only provides the information listed in the INPUTS table above. 
+**Graphic User Interface:** Navigate to the directory [GUI](GUI) to access the [executable file](GUI/slack2excel.exe) of the Windows visual interface. To use this application, download the executable file, run the app, and input the information prompted by the app. This is a standalone application, so you do not need to set up a virtual environment or manually specify your inputs into the files `inputs.py` or `settings_messages.py`. In the current version of the visual interface, the user only provides the information listed in the INPUTS table above. 

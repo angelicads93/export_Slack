@@ -4,8 +4,15 @@
 import pandas as pd
 import numpy as np
 import clean
-from settings import missing_value, all_keywords, keywords_dictionary, \
-    index_keyword, sample_text_list
+import settings_messages
+
+
+missing_value = settings_messages.missing_value
+all_keywords = settings_messages.all_keywords
+keywords_dictionary = settings_messages.keywords_dictionary
+index_keyword = settings_messages.index_keyword
+sample_text_list = settings_messages.sample_text_list
+
 
 
 def match_to_category(line, category_name):

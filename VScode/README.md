@@ -51,7 +51,7 @@
 </p>
 
 #### To specify the conditions of the analysis:
-* From your explorer tab, open the files `inputs.py` and `settings.py`.
+* From your explorer tab, open the files `inputs.py` and `settings_messages.py`.
 * Specify your choices. Among your inputs, you would need to indicate the absolute path to the directories where the source information is and the absolute path where you wish to save the output of this analysis. If you are working from Windows, you can obtain the absolute path of a directory by first using Windows File Explorer to navigate to the desired folder, right-click on it, select "Copy as path" and paste this absolute path into the corresponding entry of the `inputs.py` file.
 * Save the changes.
 

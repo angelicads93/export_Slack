@@ -5,7 +5,18 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter, column_index_from_string
 
-import settings
+import settings_messages
+
+column_widths = settings_messages.column_widths
+text_type_cols = settings_messages.text_type_cols
+height_1strow = settings_messages.height_1strow
+alignment_vert_1strow = settings_messages.alignment_vert_1strow
+alignment_horiz_1strow = settings_messages.alignment_horiz_1strow
+font_size_1strow = settings_messages.font_size_1strow
+font_bold_1strow = settings_messages.font_bold_1strow
+cell_color_1strow = settings_messages.cell_color_1strow
+font_color_in_column = settings_messages.font_color_in_column
+highlights = settings_messages.highlights
 
 
 class ExcelFormat():

@@ -15,12 +15,14 @@ import re
 import excel
 import clean
 import checkins
-import settings
-from settings import missing_value, timezone, dest_name_ext, \
-    channels_json_name, users_json_name
-# --NOTE:
-# --Default value of channels_json_name is channels.json
-# --Default value of users_json_name is users.json
+import settings_messages
+
+
+missing_value = settings_messages.missing_value
+timezone = settings_messages.timezone
+dest_name_ext = settings_messages.dest_name_ext
+channels_json_name = settings_messages.channels_json_name
+users_json_name = settings_messages.users_json_name
 
 
 class InspectSource:
@@ -764,7 +766,7 @@ class SlackMessages:
 
                 # --Apply Excel adjustments:
                 self.apply_excel_adjustments(
-                    channel_messages_folder_path, settings
+                    channel_messages_folder_path, settings_messages
                     )
                 print(
                     curr_channel_name, datetime.now().time(),
