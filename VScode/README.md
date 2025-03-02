@@ -64,6 +64,7 @@ cd .\VScode\
   <img src="../images/to_vscode.png" alt="cd to VScode" style="width:46%"; height:auto>
   <img src="../images/in_vscode.png" alt="in VScode" style="width:46%"; height:auto>
 </p>
+
 * Execute the analysis with the command
   ```{script}
   python .\main.py
