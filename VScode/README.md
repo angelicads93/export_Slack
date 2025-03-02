@@ -65,7 +65,7 @@ cd .\VScode\
   <img src="../images/in_vscode.png" alt="in VScode" style="width:46%"; height:auto>
 </p>
 
-* Execute the analysis with the command
+* To generate the Excel files from the Slack channels, run in your terminal
   ```{script}
   python .\main.py --inputs_file_path="..\inputs.py" --settings_file_path="..\settings_messages.py"
   ```
@@ -73,6 +73,11 @@ cd .\VScode\
   <img src="../images/main.png" alt="Execute main" style="width:46%"; height:auto>
   <img src="../images/done.png" alt="Done" style="width:46%"; height:auto>
 </p>
+
+* Once the Excel file(s) of the Slack channel(s) have been generated, you have the option to compile the parsed weekly reports from all the channels in a new Excel file. First specify your formatting choices in the file `settings_stats.py`. Then, run in your terminal
+  ```{script}
+  python .\stats.py --settings_file_path="..\settings_stats.py"
+  ```
 
 After you have finished using exportSlack, you can deactivate the virtual environment by running the following command in the terminal,
 ```{script}
