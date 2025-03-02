@@ -81,16 +81,31 @@ def apply_excel_adjustments(file_path, settings_mod):
     xl.save_changes()
 
 
+def check_input(compilation_reports_path, excel_channels_path):
+    if os.path.exists(excel_channels_path) is False:
+        print(f"""ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.""")
+        sys.exit()
+    if os.path.exists(compilation_reports_path) is False:
+        print(f"""ERROR: Path {compilation_reports_path} does not exists.
+              Please review your input for the variable '' in {module_name}.""")
+        sys.exit()
+
+
+
 if __name__ == '__main__':
 
     # --Define argument parser routine:
     parser = argparse.ArgumentParser(
-        description = "Script that compile all the weekly reports from the individual Excel files for each channel."
+        description = "Python script to compile all the weekly reports from individual Excel files."
         )
     parser.add_argument("--settings_file_path", required=True, type=str)
     args = parser.parse_args()
     settings_file_path = args.settings_file_path
     print(f"settings_file_path = {settings_file_path}")
+    if os.path.exists(settings_file_path) is False:
+        print(f"ERROR: Path {settings_file_path} does not exists. Please review your input for the argument --settings_file_path.")
+        sys.exit()
+
 
     # --Import settings module:
     parent_path = os.path.dirname(settings_file_path)
@@ -99,14 +114,17 @@ if __name__ == '__main__':
     settings_module = importlib.import_module(module_name)
 
     missing_value = settings_module.missing_value
-    path_converted = settings_module.excel_channels_path
+    excel_channels_path = settings_module.excel_channels_path
     compilation_reports_file_name = settings_module.compilation_reports_file_name
     compilation_reports_path = settings_module.compilation_reports_path
     print(f"Module {module_name} imported.")
-    
+
+    check_input(compilation_reports_path, excel_channels_path)
+
+
     # --Build dataframe from all the channels:
-    for file in os.listdir(path_converted):
-        channel_path = f"{path_converted}/{file}"
+    for file in os.listdir(excel_channels_path):
+        channel_path = f"{excel_channels_path}/{file}"
         if "/.~lock." in channel_path:  # avoid hidden files, if any.
             continue
         else:
@@ -123,7 +141,7 @@ if __name__ == '__main__':
             channel_df = channel_df[settings_module.columns_order]
 
             # --Concatanate channel_df to final dataframe:
-            if file == os.listdir(path_converted)[0]:
+            if file == os.listdir(excel_channels_path)[0]:
                 df = channel_df.copy()
             else:
                 df = pd.concat([df, channel_df], axis=0, ignore_index=False)
