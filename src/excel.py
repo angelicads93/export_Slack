@@ -20,40 +20,53 @@ highlights = settings_messages.highlights
 
 
 class ExcelFormat():
-    def __init__(self, file_path):#, curr_channel_name):
+    def __init__(self, file_path):
         self.file_path = file_path
-        #self.curr_channel_name = curr_channel_name
         self.wb = load_workbook(self.file_path)
-        self.ws = self.wb.active
 
-    def set_cell_width(self, column_widths):
+    def get_active_sheet(self):
+        ws = self.wb.active
+        return ws
+    
+    def get_sheet(self, sheet):
+        return self.wb[sheet]
+
+    def add_sheet(self, name):
+        ws = self.wb.create_sheet(name)
+        return ws
+
+    def rename_sheet(self, sheet, name):
+        sheet = self.wb[sheet]
+        sheet.title = name
+
+    def set_cell_width(self, ws, column_widths):
         """ Sets the width of each column in the Excel table given the values
         specified in the input dictionary column_widths
         """
         for col, width in column_widths.items():
-            for cell in self.ws[1]:
+            for cell in ws[1]:
                 if col.lower() == str(cell.value).lower():
                     clmn_lttr = get_column_letter(cell.column)
-                    self.ws.column_dimensions[clmn_lttr].width = width
+                    ws.column_dimensions[clmn_lttr].width = width
                     break
 
-    def apply_highlight_to_row(self, row, columns, cell_color, font_size,
+    def apply_highlight_to_row(self, ws, row, columns, cell_color, font_size,
                                font_bold, font_horiz_alignment):
         """ Changes the cell format of the input row and columns, given the
         specified settings.
         """
         for col in columns:
-            self.ws[f'{col}{row}'].font = Font(size=font_size, bold=font_bold)
-            self.ws[f'{col}{row}'].alignment = Alignment(horizontal=font_horiz_alignment)
+            ws[f'{col}{row}'].font = Font(size=font_size, bold=font_bold)
+            ws[f'{col}{row}'].alignment = Alignment(horizontal=font_horiz_alignment)
             if cell_color == "No Fill":
-                self.ws[f'{col}{row}'].fill = PatternFill()
+                ws[f'{col}{row}'].fill = PatternFill()
             else:
-                self.ws[f'{col}{row}'].fill = PatternFill(
+                ws[f'{col}{row}'].fill = PatternFill(
                     start_color=cell_color, end_color=cell_color,
                     fill_type='solid'
                 )
 
-    def format_highlight(self, trigger_dict):
+    def format_highlight(self, ws, trigger_dict):
         """ Uses the funtion apply_highlight_to_row to fully format the Excel
         cells from the specifications inputed in the corresponding
         trigger_dict.
@@ -68,19 +81,21 @@ class ExcelFormat():
             font_size = int(trigger_dict['font_size'])
             font_bold = bool(trigger_dict['font_bold'])
             font_horiz_alignment = str(trigger_dict['font_horiz_alignment'])
-            for i in range(2, self.ws.max_row + 1):
-                cell_value = self.ws[f'{trigger_name}{i}'].value
+            for i in range(2, ws.max_row + 1):
+                cell_value = ws[f'{trigger_name}{i}'].value
 
                 if trigger_condition == "==":
                     if type(trigger_value) is bool:
                         if cell_value == trigger_value \
                                 or cell_value is trigger_value:
-                            self.apply_highlight_to_row(i, columns, cell_color,
+                            self.apply_highlight_to_row(ws,
+                                                        i, columns, cell_color,
                                                         font_size, font_bold,
                                                         font_horiz_alignment)
                     else:
                         if cell_value == trigger_value:
-                            self.apply_highlight_to_row(i, columns, cell_color,
+                            self.apply_highlight_to_row(ws,
+                                                        i, columns, cell_color,
                                                         font_size, font_bold,
                                                         font_horiz_alignment)
 
@@ -88,35 +103,37 @@ class ExcelFormat():
                     if type(trigger_value) is bool:
                         if cell_value != trigger_value \
                                 or cell_value is not trigger_value:
-                            self.apply_highlight_to_row(i, columns, cell_color,
+                            self.apply_highlight_to_row(ws,
+                                                        i, columns, cell_color,
                                                         font_size, font_bold,
                                                         font_horiz_alignment)
                     else:
                         if cell_value != trigger_value:
-                            self.apply_highlight_to_row(i, columns, cell_color,
+                            self.apply_highlight_to_row(ws,
+                                                        i, columns, cell_color,
                                                         font_size, font_bold,
                                                         font_horiz_alignment)
 
-    def set_font_color_in_column(self, cc_tuple):
+    def set_font_color_in_column(self, ws, cc_tuple):
         """" Uses the input tuple "case" to set the color of the specified
         column (case[1]) to the desired color (case[0]).
         """
         column = cc_tuple[0]
         color = cc_tuple[1]
         column_number = column_index_from_string(column)
-        for cell in self.ws.iter_rows(
+        for cell in ws.iter_rows(
                 min_col=column_number, max_col=column_number,
-                min_row=2, max_row=self.ws.max_row):
+                min_row=2, max_row=ws.max_row):
             cell[0].font = Font(color=color)
 
-    def format_text_cells(self, column_letter):
+    def format_text_cells(self, ws, column_letter):
         """" Loop through each cell in column of type 'text' and replace CR+LF
         also, set alignments.
         """
         column_number = column_index_from_string(column_letter)
-        for row in self.ws.iter_rows(
+        for row in ws.iter_rows(
                 min_col=column_number, max_col=column_number,
-                min_row=2, max_row=self.ws.max_row):
+                min_row=2, max_row=ws.max_row):
             for cell in row:
                 # --Check if the cell contains text:
                 if isinstance(cell.value, str):
@@ -129,17 +146,17 @@ class ExcelFormat():
                         wrap_text=False, vertical="top", horizontal="left"
                         )
 
-    def set_allignment(self, alignment_vertical):
+    def set_allignment(self, ws, alignment_vertical):
         """" Aligns the text to the left and to the top of their cells (except
         the first row). Should be applied before any highlights.
         """
-        for row in self.ws.iter_rows(
-                min_col=1, max_col=self.ws.max_column,
-                min_row=2, max_row=self.ws.max_row):
+        for row in ws.iter_rows(
+                min_col=1, max_col=ws.max_column,
+                min_row=2, max_row=ws.max_row):
             for cell in row:
                 cell.alignment = Alignment(vertical=alignment_vertical)
 
-    def format_first_row(self,
+    def format_first_row(self, ws,
                          height = 43,
                          alignment_vertical = "top",
                          alignment_horizontal = "left",
@@ -150,13 +167,13 @@ class ExcelFormat():
         """" Formats the first row of the table, with the column labels. """
 
         # --Freeze the first row (Row 1):
-        self.ws.freeze_panes = 'A2'
+        ws.freeze_panes = 'A2'
         # --Set the height of the first row:
-        self.ws.row_dimensions[1].height = height
+        ws.row_dimensions[1].height = height
         # --Apply the color and font formatting to the 1st row (Header row):
         for color, columns in cell_color_1strow:
             for col in columns:
-                cell = self.ws.cell(row=1, column=column_index_from_string(col))
+                cell = ws.cell(row=1, column=column_index_from_string(col))
                 # --Set the cell color:
                 cell.fill = PatternFill(
                     start_color=color, end_color=color, fill_type="solid"

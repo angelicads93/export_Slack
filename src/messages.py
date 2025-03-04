@@ -608,9 +608,10 @@ class SlackMessages:
         given the user's inputs in the module settings_mod.
         """
         xl = excel.ExcelFormat(file_path)
-        xl.set_cell_width(settings_mod.column_widths)
-        xl.set_allignment('top')
-        xl.format_first_row(
+        ws = xl.get_default_sheet()
+        xl.set_cell_width(ws, settings_mod.column_widths)
+        xl.set_allignment(ws, 'top')
+        xl.format_first_row(ws,
                 settings_mod.height_1strow,
                 settings_mod.alignment_vert_1strow,
                 settings_mod.alignment_horiz_1strow,
@@ -619,11 +620,11 @@ class SlackMessages:
                 settings_mod.cell_color_1strow
                 )
         for cc in settings_mod.font_color_in_column:
-            xl.set_font_color_in_column(cc)
+            xl.set_font_color_in_column(ws, cc)
         for highlight in settings_mod.highlights:
-            xl.format_highlight(highlight)
+            xl.format_highlight(ws, highlight)
         for column in settings_mod.text_type_cols:
-            xl.format_text_cells(column)
+            xl.format_text_cells(ws, column)
         xl.save_changes()
         # --Review name of Excel file:
         rename(file_path, file_path.replace(' ', '-'))

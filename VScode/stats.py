@@ -27,7 +27,6 @@ def add_channel_info(channel_path, channel_df):
 
     df_ = channel_df['projects_parsed'].astype('string')
     reports_in_channel = f"{len(df_[df_ != '0'])}/{len(channel_df)}"
-
     channel_df['channel'] = [channel_name]*len(channel_df)
     channel_df['export_dates'] = [channel_date]*len(channel_df)
     channel_df['parsed_reports_in_channel'] = [reports_in_channel]*len(channel_df)
@@ -57,14 +56,16 @@ def add_info_of_users_reports(channel_df):
     return channel_df_
 
 
-def apply_excel_adjustments(file_path, settings_mod):
+def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     """ Defines the sequence of changes to be done in the Excel file
     given the user's inputs in the module settings_mod.
     """
     xl = excel.ExcelFormat(file_path)
-    xl.set_cell_width(settings_mod.column_widths)
-    xl.set_allignment('top')
-    xl.format_first_row(
+    
+    ws_channel = xl.get_sheet(sheet_name)
+    xl.set_cell_width(ws_channel, settings_mod.column_widths)
+    xl.set_allignment(ws_channel, 'top')
+    xl.format_first_row(ws_channel,
             settings_mod.height_1strow,
             settings_mod.alignment_vert_1strow,
             settings_mod.alignment_horiz_1strow,
@@ -73,21 +74,21 @@ def apply_excel_adjustments(file_path, settings_mod):
             settings_mod.cell_color_1strow
             )
     for cc in settings_mod.font_color_in_column:
-        xl.set_font_color_in_column(cc)
+        xl.set_font_color_in_column(ws_channel, cc)
     for highlight in settings_mod.highlights:
-        xl.format_highlight(highlight)
+        xl.format_highlight(ws_channel, highlight)
     for column in settings_mod.text_type_cols:
-        xl.format_text_cells(column)
+        xl.format_text_cells(ws_channel, column)
+
     xl.save_changes()
 
 
 def check_input(compilation_reports_path, excel_channels_path):
     if os.path.exists(excel_channels_path) is False:
-        print(f"""ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.""")
+        print(f"ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.")
         sys.exit()
     if os.path.exists(compilation_reports_path) is False:
-        print(f"""ERROR: Path {compilation_reports_path} does not exists.
-              Please review your input for the variable '' in {module_name}.""")
+        print(f"ERROR: Path {compilation_reports_path} does not exists. Please review your input for the variable '' in {module_name}.")
         sys.exit()
 
 
@@ -144,12 +145,6 @@ if __name__ == '__main__':
                 df = pd.concat([df, channel_df], axis=0, ignore_index=False)
     print('Information of all the check-in reports collected.')
 
-    # --Sort columns:
-    df.sort_values(
-        by=['channel', 'display_name', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
-
     # --Set columns types:
     df['projects_parsed'] = df['projects_parsed'].astype('string')
     df['keywords_parsed'] = df['keywords_parsed'].astype('string')
@@ -159,8 +154,28 @@ if __name__ == '__main__':
     df = df.reset_index().drop(columns=['index'])
     print('Performed minor formatting of columns and rows.')
 
+
+    # --Sort columns:
+    df_by_channels = df.copy()
+    df_by_channels.sort_values(
+        by=['channel', 'display_name', 'msg_date'],
+        inplace=True, ignore_index=True
+        )
+    
+    df_by_users = df.copy()
+    df_by_users.sort_values(
+        by=['display_name', 'channel', 'msg_date'],
+        inplace=True, ignore_index=True
+        )
+    
     # --Save Excel file:
+    #df.to_excel(path, index=False)
     path = f"{compilation_reports_path}/{compilation_reports_file_name}"
-    df.to_excel(path, index=False)
-    apply_excel_adjustments(path, settings_module)
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        df_by_channels.to_excel(writer, sheet_name='By Channel', index=False)
+        df_by_users.to_excel(writer, sheet_name='By User', index=False)
+        
+    apply_excel_adjustments(path, 'By Channel', settings_module)
+    apply_excel_adjustments(path, 'By User', settings_module)
+        
     print('Excel file saved.')
