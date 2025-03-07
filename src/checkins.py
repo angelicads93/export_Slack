@@ -14,7 +14,6 @@ index_keyword = settings_messages.index_keyword
 sample_text_list = settings_messages.sample_text_list
 
 
-
 def match_to_category(line, category_name):
     """ Returns True if the category_name matches the text before ':' in
     the given line. Using "==" instead of "in" prevents 'roadblocks' to trigger
@@ -113,15 +112,14 @@ def extract_answers(blocks_list):
                     break
             if line_matches is False:
                 answer_text += line
-        
         # --Check that answer is not being parsed as missing_value:
         if answer_text.lower() == 'none':
             answer_text = 'none '
         elif answer_text.lower() == 'n/a':
             answer_text = 'n/a '
-        
+
         answers.append(answer_text)
-        
+
     return answers
 
 
@@ -167,14 +165,14 @@ def id_sample_msg(df):
     for i in range(len(df)):
         text = df.at[i, 'text']
         indices_start_of_category, category_names = get_indices_of_lines_with_category_name(text)
-        projects_parsed = count_projects(category_names)
+        projects_parsed = count_label_in_df(category_names)
         parsed_df.at[i, 'projects_parsed'] = int(projects_parsed)
         if len(indices_start_of_category) == 0:
             continue
         else:
             blocks_list = group_lines(text, indices_start_of_category)
             answers = extract_answers(blocks_list)
-            parsed_df = checkin_categories_to_df_1row(
+            parsed_df = checkin_categories_to_df_nrows(
                 parsed_df, i, text, indices_start_of_category,
                 category_names, answers
                 )
@@ -244,7 +242,6 @@ def parse_nrows(df, missing_value):
     Messages with weekly reports of more than one project are splitted in as
     many rows as projects in the report.
     """
-
     # --Identify rows with sample text:
     df_tmp = id_sample_msg(df.copy())
     sample_msg_indices = df_tmp[df_tmp['projects_parsed'] == 'sample'].index

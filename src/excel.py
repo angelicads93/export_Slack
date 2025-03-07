@@ -27,7 +27,7 @@ class ExcelFormat():
     def get_active_sheet(self):
         ws = self.wb.active
         return ws
-    
+
     def get_sheet(self, sheet):
         return self.wb[sheet]
 
@@ -157,12 +157,12 @@ class ExcelFormat():
                 cell.alignment = Alignment(vertical=alignment_vertical)
 
     def format_first_row(self, ws,
-                         height = 43,
-                         alignment_vertical = "top",
-                         alignment_horizontal = "left",
-                         font_size = 9,
-                         font_bold = True,
-                         cell_color_1strow = [('FFFFFF', ["A"])]
+                         height=43,
+                         alignment_vertical="top",
+                         alignment_horizontal="left",
+                         font_size=9,
+                         font_bold=True,
+                         cell_color_1strow=[('FFFFFF', ["A"])]
                          ):
         """" Formats the first row of the table, with the column labels. """
 
@@ -186,12 +186,9 @@ class ExcelFormat():
                 # --Set the cell font:
                 cell.font = Font(size=font_size, bold=font_bold)
 
-
     def save_changes(self):
         """" Save the file in given directory. """
         self.wb.save(self.file_path)
-
-
 
     def IP_excel_adjustments(self):
         """ Excel file formatting/adjustments with  openpyxl.
