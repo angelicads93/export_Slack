@@ -15,10 +15,13 @@ missing_value = 'n/d'
 # ### DIRECTORIES AND FILE NAMES:
 # ##################################
 #
+# 0. Path where the exported JSON files are:
+jsons_source_path = '/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/'
+#
 # 1. Path where the exported Excel files are:
 excel_channels_path = '/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/_JSONs_converted'
 #
-# 2. Name of file with compilation of check-in weekly reports:
+# 2. Name of file to be saved with the compilation of check-in weekly reports:
 compilation_reports_file_name = 'test_reports_v4.xlsx'
 #
 # 3. Path where the file compilation_reports_file_path will be saved:
