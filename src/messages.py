@@ -210,6 +210,8 @@ class SlackChannelsAndUsers:
         self.dest_name_ext = self.settings_messages.dest_name_ext
         self.channels_json_name = self.settings_messages.channels_json_name
         self.users_json_name = self.settings_messages.users_json_name
+        self.channels_excel_name = self.settings_messages.channels_excel_name
+        self.users_excel_name = self.settings_messages.users_excel_name
 
         self.inspect_source = InspectSource("inputs", "settings_messages")
         self.save_path = self.inspect_source.save_in_path()
@@ -279,7 +281,7 @@ class SlackChannelsAndUsers:
 
         # --Write all channel's info to .xlsx files, if requested by user:
         self.write_info_to_file(
-            self.write_all_channels_info, "_all_channels",
+            self.write_all_channels_info, self.channels_excel_name.split(".")[0],
             self.all_channels_df, self.save_path)
 
     def get_all_users_info(self):
@@ -327,7 +329,7 @@ class SlackChannelsAndUsers:
 
         # --Write all users's info to .xlsx files, if requested by user:
         self.write_info_to_file(
-            self.write_all_users_info, "_all_users",
+            self.write_all_users_info, self.users_excel_name.split(".")[0],
             self.all_users_df, self.save_path
             )
 

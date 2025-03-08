@@ -13,17 +13,22 @@ timezone = 'US/Central'
 # ### DIRECTORIES AND FILE NAMES:
 # ##################################
 #
-# 1. Name of file with the channels information located in the source directory:
+# 1. Name of JSON file with the channels information in the source directory:
 channels_json_name = 'channels.json'
 #
 # -----------------------------------------------------------------------------
-# 2. Name of file with the users information located in the source directory:
+# 2. Name of JSON file with the users information in the source directory:
 users_json_name = 'users.json'
 #
 # -----------------------------------------------------------------------------
 # 3. Name extension to the destination folder:
 dest_name_ext = '_JSONs_converted'
-
+#
+# 4. Name of Excel workbook where the channel's information will be saved:
+channels_excel_name = '_all_channels.xlsx'
+#
+# 5. Name of Excel workbook where the user's information will be saved:
+users_excel_name = '_all_users.xlsx'
 
 # ############################################################################
 # ############################################################################
