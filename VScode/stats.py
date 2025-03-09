@@ -18,16 +18,42 @@ import excel
 import clean
 
 
+def parse_command_input():
+    """ Parse the user's input command. """
+    parser = argparse.ArgumentParser(
+        description="Python script to compile all the weekly reports from "
+        + "individual Excel files."
+        )
+    parser.add_argument("--settings_file_path", required=True, type=str)
+    args = parser.parse_args()
+    settings_file_path = args.settings_file_path
+    print(f"settings_file_path = {settings_file_path}")
+    if os.path.exists(settings_file_path) is False:
+        print(f"ERROR: Path {settings_file_path} does not exists." + "\n"
+              + "       Please review your input for the argument "
+              + "--settings_file_path.")
+        sys.exit()
+    return settings_file_path
+
+
 def check_input(compilation_reports_path, excel_channels_path):
+    """ Verify validity of the user's inputs in the settings module. """
     if os.path.exists(excel_channels_path) is False:
-        print(f"ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.")
+        print(f"ERROR: Path {excel_channels_path} does not exists." + "\n"
+              + "       Please review your input for the variable "
+              + "'excel_channels_path' in {module_name}.")
         sys.exit()
     if os.path.exists(compilation_reports_path) is False:
-        print(f"ERROR: Path {compilation_reports_path} does not exists. Please review your input for the variable '' in {module_name}.")
+        print(f"ERROR: Path {compilation_reports_path} does not exists." + "\n"
+              + "       Please review your input for the variable"
+              + " 'compilation_reports_file_name' in {module_name}.")
         sys.exit()
 
 
 def get_list_channels(source_path):
+    """ Retrieve the name of all the expected Slack channels from the 
+    Slack-export source directory.
+    """
     channels_path = os.listdir(source_path)
     for i, ch in enumerate(channels_path):
         ch = ch.replace(" ", "").replace("-", "").replace("_", "")
@@ -35,14 +61,15 @@ def get_list_channels(source_path):
     return channels_path
 
 
-def check_channel(channel_name, list_channels):
-    cn = "_".join(channel_name.split("_")[:-3])
+def check_channel(file_name, list_channels):
+    """ Check if file_name is indeed an expected Slack channel. """
+    cn = "_".join(file_name.split("_")[:-3])
     cn = cn.replace(" ", "").replace("-", "").replace("_", "")
     if cn in list_channels:
         return True
     else:
         return False
-    
+
 
 def add_channel_info(channel_path, channel_df):
     """ Get name of channel, time interval of the export and relative number
@@ -82,6 +109,34 @@ def add_info_of_users_reports(channel_df):
     return channel_df_
 
 
+def format_parsed_reports(df):
+    """ Select the parsed weekly reports and sort the df by channel. """
+    df_p = df.copy()
+    df_p = df_p[df_p['projects_parsed'] != '0']
+    df_p = df_p.reset_index().drop(columns=['index'])
+    df_p.sort_values(
+        by=['channel', 'display_name', 'msg_date'],
+        inplace=True, ignore_index=True
+        )
+    return df_p
+
+
+def format_unparsed_reports(df, wr_channel_name):
+    """ Select the unparsed weekly reports and sort the df by channel. """
+    df_np = df.copy()
+    df_np = df_np[df_np['channel'] == wr_channel_name]
+    df_np = df_np[df_np['projects_parsed'] == "0"]
+    df_np = df_np[df_np['msg_id'] != 'channel_join']
+    df_np = df_np[df_np['is_bot'] != True]
+    df_np = df_np[df_np['type'] != 'thread']
+    df_np = df_np.reset_index().drop(columns=['index'])
+    df_np.sort_values(
+        by=['channel', 'display_name', 'msg_date'],
+        inplace=True, ignore_index=True
+        )
+    return df_np
+
+
 def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     """ Defines the sequence of changes to be done in the Excel file
     given the user's inputs in the module settings_mod.
@@ -108,23 +163,12 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
         xl.format_text_cells(ws_channel, column)
 
     xl.set_filters(ws_channel)
-
     xl.save_changes()
 
-
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
-
-    # --Define argument parser routine:
-    parser = argparse.ArgumentParser(
-        description="Python script to compile all the weekly reports from individual Excel files."
-        )
-    parser.add_argument("--settings_file_path", required=True, type=str)
-    args = parser.parse_args()
-    settings_file_path = args.settings_file_path
-    print(f"settings_file_path = {settings_file_path}")
-    if os.path.exists(settings_file_path) is False:
-        print(f"ERROR: Path {settings_file_path} does not exists. Please review your input for the argument --settings_file_path.")
-        sys.exit()
+    # --Parse the settings file:
+    settings_file_path = parse_command_input()
 
     # --Import settings module:
     parent_path = os.path.dirname(settings_file_path)
@@ -173,35 +217,23 @@ if __name__ == '__main__':
     print('Set data type of columns.')
 
     # --Select rows with un-parsed projects in official weekly report channel:
-    df_nr = df.copy()
-    df_nr = df_nr[df_nr['channel'] == 'think-biver-weekly-checkins']
-    df_nr = df_nr[df_nr['projects_parsed'] == "0"]
-    df_nr = df_nr[df_nr['msg_id'] != 'channel_join']
-    df_nr = df_nr[df_nr['is_bot'] != True]
-    df_nr = df_nr[df_nr['type'] != 'thread']
-    df_nr = df_nr.reset_index().drop(columns=['index'])
-    df_nr.sort_values(
-        by=['channel', 'display_name', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
+    df_unparsed = format_unparsed_reports(df, "think-biver-weekly-checkins")
+    unparsed_ws_name = "Unparsed weekly reports"
     print('Retrieve un-parsed weekly reports.')
 
     # --Select rows with parsed projects:
-    df = df[df['projects_parsed'] != '0']
-    df = df.reset_index().drop(columns=['index'])
-    df.sort_values(
-        by=['channel', 'display_name', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
+    df_parsed = format_parsed_reports(df)
+    parsed_ws_name = "Parsed weekly reports"
     print('Retrieve parsed weekly reports from all the channels.')
 
-    # --Save Excel file:
+    # --Save Excel workbook:
     path = f"{compilation_reports_path}/{compilation_reports_file_name}"
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Weekly reports', index=False)
-        df_nr.to_excel(writer, sheet_name='Unparsed reports', index=False)
+        df_parsed.to_excel(writer, sheet_name=parsed_ws_name, index=False)
+        df_unparsed.to_excel(writer, sheet_name=unparsed_ws_name, index=False)
 
-    apply_excel_adjustments(path, 'Weekly reports', settings_module)
-    apply_excel_adjustments(path, 'Unparsed reports', settings_module)
+    # --Apply formatting of Excel worksheets:
+    apply_excel_adjustments(path, parsed_ws_name, settings_module)
+    apply_excel_adjustments(path, unparsed_ws_name, settings_module)
 
     print('Excel file saved.')

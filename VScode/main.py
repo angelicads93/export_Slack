@@ -24,14 +24,18 @@ if __name__ == "__main__":
     inputs = os.path.basename(inputs_file_path).split(".")[0]
     print(f"inputs_file_path = {inputs_file_path}")
     if os.path.exists(inputs_file_path) is False:
-        print(f"ERROR: Path {inputs_file_path} does not exists. Please review your input for the argument --inputs_file_path.")
+        print(f"ERROR: Path {inputs_file_path} does not exists." + "/n"
+              + "       Please review your input for the argument "
+              + "--inputs_file_path.")
         sys.exit()
 
     settings_file_path = args.settings_file_path
     settings_messages = os.path.basename(settings_file_path).split(".")[0]
     print(f"settings_file_path = {settings_file_path}")
     if os.path.exists(settings_file_path) is False:
-        print(f"ERROR: Path {settings_file_path} does not exists. Please review your input for the argument --settings_file_path.")
+        print(f"ERROR: Path {settings_file_path} does not exists." + "/n"
+              + "       Please review your input for the argument"
+              + "--settings_file_path.")
         sys.exit()
 
     # --Initialize constructor of the class InspectSource:

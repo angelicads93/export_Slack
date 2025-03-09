@@ -105,9 +105,9 @@ class InspectSource:
                     f"{self.slackexport_folder_path}/{self.chosen_channel_name}"
                     ) is False:
                 self.channels_names = []
-                print(
-                    f"The source directory for the channel '{self.chosen_channel_name}' was not found in {self.slackexport_folder_path}"
-                    )
+                print("The source directory for the channel "
+                      + f"'{self.chosen_channel_name}' was not found in "
+                      + f"{self.slackexport_folder_path}")
                 self.continue_analysis = False
             else:
                 self.channels_names = [self.chosen_channel_name]
@@ -761,7 +761,6 @@ class SlackMessages:
                 channel_messages_df.to_excel(
                     f"{channel_messages_folder_path}", index=False
                     )
-                print(f'## {channel_messages_folder_path}')
 
                 # --Apply Excel adjustments:
                 self.apply_excel_adjustments(
