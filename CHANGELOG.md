@@ -1,5 +1,14 @@
 # Change Log
 
+**03/08/2025**
+* Added filters in Excel table with compiled weekly reports, allowing filtering and/or sorting of all the columns.
+* Added function to draw a vertical line in an Excel table, given the specs of `draw_vert_line` in the `settings_stats.py`.
+* Added check of the channels' names when reading the Excel tables with the exported messages.
+* Added variables to `settings_messages.py`: `channels_excel_name` and `users_excel_name` to be used as names of the corresponding files.
+
+**03/04/2025**
+* Added worksheet as argument on Excel functions and created tabs of by_channel and by_user in the compiled Excel file.
+
 **03/02/2025**
 * Improved the coding structure of the `stats.py` file and changed its location from `/src/stats.py` to `/VScode/stats.py`.
 * Renamed the settings file needed to generate the Excel files for each Slack channel from `settings.py` to `settings_messages.py`. (To be more explicit and avoid confusion with the `settings_stats.py` file)
