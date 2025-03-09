@@ -170,33 +170,38 @@ if __name__ == '__main__':
     # --Set columns types:
     df['projects_parsed'] = df['projects_parsed'].astype('string')
     df['keywords_parsed'] = df['keywords_parsed'].astype('string')
+    print('Set data type of columns.')
+
+    # --Select rows with un-parsed projects in official weekly report channel:
+    df_nr = df.copy()
+    df_nr = df_nr[df_nr['channel'] == 'think-biver-weekly-checkins']
+    df_nr = df_nr[df_nr['projects_parsed'] == "0"]
+    df_nr = df_nr[df_nr['msg_id'] != 'channel_join']
+    df_nr = df_nr[df_nr['is_bot'] != True]
+    df_nr = df_nr[df_nr['type'] != 'thread']
+    df_nr = df_nr.reset_index().drop(columns=['index'])
+    df_nr.sort_values(
+        by=['channel', 'display_name', 'msg_date'],
+        inplace=True, ignore_index=True
+        )
+    print('Retrieve un-parsed weekly reports.')
 
     # --Select rows with parsed projects:
     df = df[df['projects_parsed'] != '0']
     df = df.reset_index().drop(columns=['index'])
-    print('Performed minor formatting of columns and rows.')
-
-    # --Sort columns:
-    df_by_channels = df.copy()
-    df_by_channels.sort_values(
+    df.sort_values(
         by=['channel', 'display_name', 'msg_date'],
         inplace=True, ignore_index=True
         )
-
-    # df_by_users = df.copy()
-    # df_by_users.sort_values(
-    #    by=['display_name', 'channel', 'msg_date'],
-    #    inplace=True, ignore_index=True
-    #    )
+    print('Retrieve parsed weekly reports from all the channels.')
 
     # --Save Excel file:
-    #df.to_excel(path, index=False)
     path = f"{compilation_reports_path}/{compilation_reports_file_name}"
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
-        df_by_channels.to_excel(writer, sheet_name='Weekly reports', index=False)
-        #df_by_users.to_excel(writer, sheet_name='Sorted by User', index=False)
+        df.to_excel(writer, sheet_name='Weekly reports', index=False)
+        df_nr.to_excel(writer, sheet_name='Unparsed reports', index=False)
 
     apply_excel_adjustments(path, 'Weekly reports', settings_module)
-    #apply_excel_adjustments(path, 'Sorted by User', settings_module)
+    apply_excel_adjustments(path, 'Unparsed reports', settings_module)
 
     print('Excel file saved.')
