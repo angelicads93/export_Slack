@@ -19,8 +19,9 @@ def match_to_category(line, category_name):
     the given line. Using "==" instead of "in" prevents 'roadblocks' to trigger
     both the categories roadblockc and progress_and_roadblocks simultaneously.
     """
-    line = line.lower().lstrip('*-•.◦ 1234567890').rstrip('*-•.◦ 1234567890')
+    line = line.lower().lstrip('*-_•.◦ 1234567890').rstrip('*-_•.◦ 1234567890')
     line = line.replace('*', '').replace(' ', '').replace('_', '')
+    line = line.replace("&gt;","")
     out = False
     for keyword in keywords_dictionary[category_name]:
         keyword_ = keyword.lower().replace(' ', '')
@@ -106,8 +107,9 @@ def extract_answers(blocks_list):
             for category in all_keywords:
                 if match_to_category(line, category) is True:
                     answer_text += line.split(":")[1]
-                    answer_text = answer_text.lstrip('*-•.◦ 1234567890').rstrip('*-•.◦ 1234567890')
+                    answer_text = answer_text.lstrip('*-_•.◦ 1234567890').rstrip('*-_•.◦ 1234567890')
                     answer_text = answer_text.replace('*', '')
+                    answer_text = answer_text.replace("&gt;","")
                     line_matches = True
                     break
             if line_matches is False:
@@ -189,7 +191,7 @@ def projects_parsed_to_fraction(projects_parsed, i, sample_msg_indices):
     if i in sample_msg_indices:
         projects_parsed_str = 'sample'
     if projects_parsed == 0:
-        projects_parsed_str = '0'
+        projects_parsed_str = str(0)
     elif projects_parsed == 1:
         projects_parsed_str = '1/1'
     elif projects_parsed == 2:
