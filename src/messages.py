@@ -614,12 +614,12 @@ class SlackMessages:
         xl.set_cell_width(ws, settings_mod.column_widths)
         xl.set_allignment(ws, 'top')
         xl.format_first_row(ws,
-                            settings_mod.height_1strow,
-                            settings_mod.alignment_vert_1strow,
-                            settings_mod.alignment_horiz_1strow,
-                            settings_mod.font_size_1strow,
-                            settings_mod.font_bold_1strow,
-                            settings_mod.cell_color_1strow
+                            height=settings_mod.height_1strow,
+                            aling_vert=settings_mod.alignment_vert_1strow,
+                            aling_horiz=settings_mod.alignment_horiz_1strow,
+                            font_size=settings_mod.font_size_1strow,
+                            font_bold=settings_mod.font_bold_1strow,
+                            cell_color_1strow=settings_mod.cell_color_1strow
                             )
         for cc in settings_mod.font_color_in_column:
             xl.set_font_color_in_column(ws, cc)

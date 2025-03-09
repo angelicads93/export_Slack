@@ -18,6 +18,32 @@ import excel
 import clean
 
 
+def check_input(compilation_reports_path, excel_channels_path):
+    if os.path.exists(excel_channels_path) is False:
+        print(f"ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.")
+        sys.exit()
+    if os.path.exists(compilation_reports_path) is False:
+        print(f"ERROR: Path {compilation_reports_path} does not exists. Please review your input for the variable '' in {module_name}.")
+        sys.exit()
+
+
+def get_list_channels(source_path):
+    channels_path = os.listdir(source_path)
+    for i, ch in enumerate(channels_path):
+        ch = ch.replace(" ", "").replace("-", "").replace("_", "")
+        channels_path[i] = ch
+    return channels_path
+
+
+def check_channel(channel_name, list_channels):
+    cn = "_".join(channel_name.split("_")[:-3])
+    cn = cn.replace(" ", "").replace("-", "").replace("_", "")
+    if cn in list_channels:
+        return True
+    else:
+        return False
+    
+
 def add_channel_info(channel_path, channel_df):
     """ Get name of channel, time interval of the export and relative number
     of reports.
@@ -61,17 +87,18 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     given the user's inputs in the module settings_mod.
     """
     xl = excel.ExcelFormat(file_path)
-
     ws_channel = xl.get_sheet(sheet_name)
+
     xl.set_cell_width(ws_channel, settings_mod.column_widths)
+    xl.draw_vertical_line(ws_channel, settings_mod.draw_vert_line)
     xl.set_allignment(ws_channel, 'top')
     xl.format_first_row(ws_channel,
-                        settings_mod.height_1strow,
-                        settings_mod.alignment_vert_1strow,
-                        settings_mod.alignment_horiz_1strow,
-                        settings_mod.font_size_1strow,
-                        settings_mod.font_bold_1strow,
-                        settings_mod.cell_color_1strow
+                        height=settings_mod.height_1strow,
+                        aling_vert=settings_mod.alignment_vert_1strow,
+                        aling_horiz=settings_mod.alignment_horiz_1strow,
+                        font_size=settings_mod.font_size_1strow,
+                        font_bold=settings_mod.font_bold_1strow,
+                        cell_color_1strow=settings_mod.cell_color_1strow
                         )
     for cc in settings_mod.font_color_in_column:
         xl.set_font_color_in_column(ws_channel, cc)
@@ -80,35 +107,7 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     for column in settings_mod.text_type_cols:
         xl.format_text_cells(ws_channel, column)
 
-    xl.draw_vertical_line(ws_channel, "C")
-
     xl.save_changes()
-
-
-def check_input(compilation_reports_path, excel_channels_path):
-    if os.path.exists(excel_channels_path) is False:
-        print(f"ERROR: Path {excel_channels_path} does not exists. Please review your input for the variable 'excel_channels_path' in {module_name}.")
-        sys.exit()
-    if os.path.exists(compilation_reports_path) is False:
-        print(f"ERROR: Path {compilation_reports_path} does not exists. Please review your input for the variable '' in {module_name}.")
-        sys.exit()
-
-
-def get_list_channels(source_path):
-    channels_path = os.listdir(source_path)
-    for i, ch in enumerate(channels_path):
-        ch = ch.replace(" ", "").replace("-", "").replace("_", "")
-        channels_path[i] = ch
-    return channels_path
-
-
-def check_channel(channel_name, list_channels):
-    cn = "_".join(channel_name.split("_")[:-3])
-    cn = cn.replace(" ", "").replace("-", "").replace("_", "")
-    if cn in list_channels:
-        return True
-    else:
-        return False
 
 
 if __name__ == '__main__':

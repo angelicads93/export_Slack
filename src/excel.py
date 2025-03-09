@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter, column_index_from_string
 
 import settings_messages
@@ -146,6 +146,31 @@ class ExcelFormat():
                         wrap_text=False, vertical="top", horizontal="left"
                         )
 
+    def add_border(self, cell, border):
+        """ Add a border to a cell without modifying the previous setting. """
+        current_border = cell.border
+        cell.border = Border(
+            left=border.left if border.left else current_border.left,
+            right=border.right if border.right else current_border.right,
+            top=border.top if border.top else current_border.top,
+            bottom=border.bottom if border.bottom else current_border.bottom,
+        )
+
+    def draw_vertical_line(self, ws, draw_vert_line):
+        """ Draw a vertical at the right of the given column, without modifying
+        the previous border-setting of the cells.
+        """
+        columns_letter = draw_vert_line["columns"]
+        thickness = draw_vert_line["thickness"]
+        for column_letter in columns_letter:
+            column_number = column_index_from_string(column_letter)
+            for row in ws.iter_rows(
+                    min_col=column_number, max_col=column_number,
+                    min_row=1, max_row=ws.max_row):
+                for cell in row:
+                    border = Border(right=Side(style=thickness))
+                    self.add_border(cell, border)
+
     def set_allignment(self, ws, alignment_vertical):
         """" Aligns the text to the left and to the top of their cells (except
         the first row). Should be applied before any highlights.
@@ -158,8 +183,8 @@ class ExcelFormat():
 
     def format_first_row(self, ws,
                          height=43,
-                         alignment_vertical="top",
-                         alignment_horizontal="left",
+                         aling_vert="top",
+                         aling_horiz="left",
                          font_size=9,
                          font_bold=True,
                          cell_color_1strow=[('FFFFFF', ["A"])]
@@ -180,8 +205,8 @@ class ExcelFormat():
                     )
                 # --Set the cell alignment:
                 cell.alignment = Alignment(
-                    wrap_text=True, vertical=alignment_vertical,
-                    horizontal=alignment_horizontal
+                    wrap_text=True, vertical=aling_vert,
+                    horizontal=aling_horiz
                     )
                 # --Set the cell font:
                 cell.font = Font(size=font_size, bold=font_bold)

@@ -128,4 +128,9 @@ highlights = [
     "font_horiz_alignment": "right"
     }
 ]
-#
+# -----------------------------------------------------------------------------
+# 6. Draw vertical lines at the right of the given columns:
+draw_vert_line = {
+    "columns": ["C", "H", "R"],
+    "thickness": "medium"
+    }
