@@ -1,6 +1,7 @@
 # Change Log
 
 **03/08/2025**
+* Added tab with unparsed weekly reports from (exclusively) the weekly-reports Slack-channel. 
 * Added filters in Excel table with compiled weekly reports, allowing filtering and/or sorting of all the columns.
 * Added function to draw a vertical line in an Excel table, given the specs of `draw_vert_line` in the `settings_stats.py`.
 * Added check of the channels' names when reading the Excel tables with the exported messages.
