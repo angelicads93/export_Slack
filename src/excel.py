@@ -211,6 +211,15 @@ class ExcelFormat():
                 # --Set the cell font:
                 cell.font = Font(size=font_size, bold=font_bold)
 
+    def set_filters(self, ws):        
+        # Define the range for the filter (all columns and rows with data)
+        max_column_letter = get_column_letter(ws.max_column)
+        full_range = f"A1:{max_column_letter}{ws.max_row}"
+        
+        # Apply the filter
+        ws.auto_filter.ref = full_range
+        
+        
     def save_changes(self):
         """" Save the file in given directory. """
         self.wb.save(self.file_path)

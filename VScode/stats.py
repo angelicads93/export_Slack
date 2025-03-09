@@ -107,6 +107,8 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     for column in settings_mod.text_type_cols:
         xl.format_text_cells(ws_channel, column)
 
+    xl.set_filters(ws_channel)
+
     xl.save_changes()
 
 
@@ -181,20 +183,20 @@ if __name__ == '__main__':
         inplace=True, ignore_index=True
         )
 
-    df_by_users = df.copy()
-    df_by_users.sort_values(
-        by=['display_name', 'channel', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
+    # df_by_users = df.copy()
+    # df_by_users.sort_values(
+    #    by=['display_name', 'channel', 'msg_date'],
+    #    inplace=True, ignore_index=True
+    #    )
 
     # --Save Excel file:
     #df.to_excel(path, index=False)
     path = f"{compilation_reports_path}/{compilation_reports_file_name}"
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
-        df_by_channels.to_excel(writer, sheet_name='By Channel', index=False)
-        df_by_users.to_excel(writer, sheet_name='By User', index=False)
+        df_by_channels.to_excel(writer, sheet_name='Weekly reports', index=False)
+        #df_by_users.to_excel(writer, sheet_name='Sorted by User', index=False)
 
-    apply_excel_adjustments(path, 'By Channel', settings_module)
-    apply_excel_adjustments(path, 'By User', settings_module)
+    apply_excel_adjustments(path, 'Weekly reports', settings_module)
+    #apply_excel_adjustments(path, 'Sorted by User', settings_module)
 
     print('Excel file saved.')
