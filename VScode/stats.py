@@ -16,7 +16,6 @@ sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
 import excel
 import clean
-import prune
 
 
 def parse_command_input():
@@ -103,9 +102,7 @@ def add_info_of_users_reports(df):
         if user == users[0]:
             df_out = user_df.copy()
         else:
-            df_out = pd.concat(
-                [df_out, user_df], axis=0, ignore_index=False
-                )
+            df_out = pd.concat([df_out, user_df], axis=0, ignore_index=False)
 
     return df_out
 
@@ -115,10 +112,8 @@ def format_parsed_reports(df):
     df_p = df.copy()
     df_p = df_p[df_p['projects_parsed'] != '0']
     df_p = df_p.reset_index().drop(columns=['index'])
-    df_p.sort_values(
-        by=['channel', 'display_name', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
+    df_p.sort_values(by=['channel', 'display_name', 'msg_date'],
+                     inplace=True, ignore_index=True)
     return df_p
 
 
@@ -131,10 +126,8 @@ def format_unparsed_reports(df, wr_channel_name):
     df_np = df_np[df_np['is_bot'] != True]
     df_np = df_np[df_np['type'] != 'thread']
     df_np = df_np.reset_index().drop(columns=['index'])
-    df_np.sort_values(
-        by=['channel', 'display_name', 'msg_date'],
-        inplace=True, ignore_index=True
-        )
+    df_np.sort_values(by=['channel', 'display_name', 'msg_date'],
+                      inplace=True, ignore_index=True)
     return df_np
 
 
@@ -166,6 +159,7 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     xl.set_filters(ws_channel)
     xl.save_changes()
 
+
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     # --Parse the settings file:
@@ -181,6 +175,7 @@ if __name__ == '__main__':
     excel_channels_path = settings_module.excel_channels_path
     compilation_reports_file_name = settings_module.compilation_reports_file_name
     compilation_reports_path = settings_module.compilation_reports_path
+    reports_channel_name = settings_module.reports_channel_name
     print(f"Module {module_name} imported.")
 
     # --Check the input and retrieve expected name of channels:
@@ -220,14 +215,8 @@ if __name__ == '__main__':
     df['keywords_parsed'] = df['keywords_parsed'].astype('string')
     print('Set data type of columns.')
 
-    # --Get all messages with pruned rows:
-    df_pruned = prune.remove_automatic_msgs(df)
-    df_pruned = prune.remove_emojis_in_text(df_pruned)
-    df_short = prune.remove_short_msgs(df_pruned, n_char=20)
-    print('Retrieve all messages and pruned rows.')
-
     # --Select rows with un-parsed projects in official weekly report channel:
-    df_unparsed = format_unparsed_reports(df, "think-biver-weekly-checkins")
+    df_unparsed = format_unparsed_reports(df, reports_channel_name)
     unparsed_ws_name = "Unparsed weekly reports"
     print('Retrieve un-parsed weekly reports.')
 
