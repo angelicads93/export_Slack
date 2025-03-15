@@ -132,23 +132,25 @@ text_type_cols = ['I', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
 #
 # -----------------------------------------------------------------------------
 # 3. Format the height, color, font alignment and size of the first column:
-height_1strow = 43
-alignment_vert_1strow = "top"
-alignment_horiz_1strow = "left"
-font_size_1strow = 9
-font_bold_1strow = True
-cell_color_1strow = [
-    # ("color_code", [list the columns' letter])
-    ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']),
-    ("CDB5B7", ['Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'])
-]
+header_row = {
+    "height": 43,
+    "alignment_vert": "top",
+    "alignment_horiz": "left",
+    "font_size": 9,
+    "font_bold": True,
+    "cell_color": [
+        # ("color_code", [list the columns' letter])
+        ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']),
+        ("CDB5B7", ['Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'])
+        ]
+}
 # -----------------------------------------------------------------------------
 # 4. Distinguish special columns by changing the color of their font:
 font_color_in_column = [
-    # ["column_letter', 'color_code']
-    ('I', "0707C5"),  # "text" to blue
-    ('O', "c10105"),  # "parent_user_name" to red
-    ('E', "c10105")   # "display_name" to red
+    # ["color_code', 'column_letter']
+    ("0707C5", "I"),  # "text" to blue
+    ("c10105", "O"),  # "parent_user_name" to red
+    ("c10105", "E")   # "display_name" to red
 ]
 # -----------------------------------------------------------------------------
 # 5. Change the color and/or font on chosen cells based on a certain condition
@@ -192,7 +194,3 @@ highlights = [
     }
 ]
 #
-
-
-# --Ready to start the analysis?:
-continue_analysis = True

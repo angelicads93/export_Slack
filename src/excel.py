@@ -9,12 +9,7 @@ import settings_messages
 
 column_widths = settings_messages.column_widths
 text_type_cols = settings_messages.text_type_cols
-height_1strow = settings_messages.height_1strow
-alignment_vert_1strow = settings_messages.alignment_vert_1strow
-alignment_horiz_1strow = settings_messages.alignment_horiz_1strow
-font_size_1strow = settings_messages.font_size_1strow
-font_bold_1strow = settings_messages.font_bold_1strow
-cell_color_1strow = settings_messages.cell_color_1strow
+header_row = settings_messages.header_row
 font_color_in_column = settings_messages.font_color_in_column
 highlights = settings_messages.highlights
 
@@ -118,8 +113,8 @@ class ExcelFormat():
         """" Uses the input tuple "case" to set the color of the specified
         column (case[1]) to the desired color (case[0]).
         """
-        column = cc_tuple[0]
-        color = cc_tuple[1]
+        column = cc_tuple[1]
+        color = cc_tuple[0]
         column_number = column_index_from_string(column)
         for cell in ws.iter_rows(
                 min_col=column_number, max_col=column_number,
@@ -181,22 +176,14 @@ class ExcelFormat():
             for cell in row:
                 cell.alignment = Alignment(vertical=alignment_vertical)
 
-    def format_first_row(self, ws,
-                         height=43,
-                         aling_vert="top",
-                         aling_horiz="left",
-                         font_size=9,
-                         font_bold=True,
-                         cell_color_1strow=[('FFFFFF', ["A"])]
-                         ):
+    def format_first_row(self, ws, header_row):
         """" Formats the first row of the table, with the column labels. """
-
         # --Freeze the first row (Row 1):
         ws.freeze_panes = 'A2'
         # --Set the height of the first row:
-        ws.row_dimensions[1].height = height
+        ws.row_dimensions[1].height = header_row["height"]
         # --Apply the color and font formatting to the 1st row (Header row):
-        for color, columns in cell_color_1strow:
+        for color, columns in header_row["cell_color"]:
             for col in columns:
                 cell = ws.cell(row=1, column=column_index_from_string(col))
                 # --Set the cell color:
@@ -205,11 +192,12 @@ class ExcelFormat():
                     )
                 # --Set the cell alignment:
                 cell.alignment = Alignment(
-                    wrap_text=True, vertical=aling_vert,
-                    horizontal=aling_horiz
+                    wrap_text=True, vertical=header_row["alignment_vert"],
+                    horizontal=header_row["alignment_horiz"]
                     )
                 # --Set the cell font:
-                cell.font = Font(size=font_size, bold=font_bold)
+                cell.font = Font(size=header_row["font_size"],
+                                 bold=header_row["font_bold"])
 
     def set_filters(self, ws):
         # Define the range for the filter (all columns and rows with data)

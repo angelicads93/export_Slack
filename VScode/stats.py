@@ -141,14 +141,7 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
     xl.set_cell_width(ws_channel, settings_mod.column_widths)
     xl.draw_vertical_line(ws_channel, settings_mod.draw_vert_line)
     xl.set_allignment(ws_channel, 'top')
-    xl.format_first_row(ws_channel,
-                        height=settings_mod.height_1strow,
-                        aling_vert=settings_mod.alignment_vert_1strow,
-                        aling_horiz=settings_mod.alignment_horiz_1strow,
-                        font_size=settings_mod.font_size_1strow,
-                        font_bold=settings_mod.font_bold_1strow,
-                        cell_color_1strow=settings_mod.cell_color_1strow
-                        )
+    xl.format_first_row(ws_channel, settings_mod.header_row)
     for cc in settings_mod.font_color_in_column:
         xl.set_font_color_in_column(ws_channel, cc)
     for highlight in settings_mod.highlights:

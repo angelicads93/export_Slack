@@ -341,7 +341,6 @@ class SlackMessages:
 
         self.inputs = importlib.import_module(inputs)
         self.slackexport_folder_path = self.inputs.slackexport_folder_path
-        self.prune_msgs = self.inputs.prune_msgs
 
         self.settings_messages = importlib.import_module(settings_messages)
         self.missing_value = self.settings_messages.missing_value
@@ -702,14 +701,7 @@ class SlackMessages:
         ws = xl.get_sheet(ws_name)
         xl.set_cell_width(ws, settings_mod.column_widths)
         xl.set_allignment(ws, 'top')
-        xl.format_first_row(ws,
-                            height=settings_mod.height_1strow,
-                            aling_vert=settings_mod.alignment_vert_1strow,
-                            aling_horiz=settings_mod.alignment_horiz_1strow,
-                            font_size=settings_mod.font_size_1strow,
-                            font_bold=settings_mod.font_bold_1strow,
-                            cell_color_1strow=settings_mod.cell_color_1strow
-                            )
+        xl.format_first_row(ws, settings_mod.header_row)
         for cc in settings_mod.font_color_in_column:
             xl.set_font_color_in_column(ws, cc)
         for highlight in settings_mod.highlights:
