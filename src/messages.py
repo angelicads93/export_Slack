@@ -4,7 +4,7 @@
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir, rename, getcwd
+from os import listdir, getcwd
 from os.path import getmtime, exists, isdir, dirname
 from pathlib import Path
 import sys
@@ -341,6 +341,7 @@ class SlackMessages:
 
         self.inputs = importlib.import_module(inputs)
         self.slackexport_folder_path = self.inputs.slackexport_folder_path
+        self.prune_msgs = self.inputs.prune_msgs
 
         self.settings_messages = importlib.import_module(settings_messages)
         self.missing_value = self.settings_messages.missing_value
@@ -396,12 +397,11 @@ class SlackMessages:
 
         return msgs_df
 
-    def get_channel_messages_df(self, export_path,
-                                curr_channel_name, json_list):
+    def get_ch_msgs_df(self, export_path, curr_ch_name, json_list):
         """ Extracts all the messages of a given channel from all its JSON
         files, and stores them on a data frame
         """
-        channel_messages_df = pd.DataFrame(
+        ch_msgs_df = pd.DataFrame(
             columns=["msg_id", "ts", "user", "type", "text", "reply_count",
                      "reply_users_count", "ts_latest_reply", "ts_thread",
                      "parent_user_id"]
@@ -409,7 +409,7 @@ class SlackMessages:
 
         # --Iterate over JSONs inside the current channel's folder:
         for file_day in range(len(json_list)):
-            filejson_path = f"{export_path}/{curr_channel_name}/{json_list[file_day]}"
+            filejson_path = f"{export_path}/{curr_ch_name}/{json_list[file_day]}"
 
             with open(filejson_path, encoding='utf-8') as f:
                 import_file_json = load(f)
@@ -417,22 +417,22 @@ class SlackMessages:
             import_file_df['json_name'] = json_list[file_day]
             import_file_df['json_mod_ts'] = getmtime(filejson_path)
 
-            channel_messages_df = pd.concat(
-                [channel_messages_df, import_file_df],
+            ch_msgs_df = pd.concat(
+                [ch_msgs_df, import_file_df],
                 axis=0, ignore_index=True
                 )
 
-        channel_messages_df['channel_folder'] = curr_channel_name
-        return channel_messages_df
+        ch_msgs_df['channel_folder'] = curr_ch_name
+        return ch_msgs_df
 
-    def get_channel_users_df(self, channel_messages_df, users_df):
+    def get_channel_users_df(self, ch_msgs_df, users_df):
         """ Returns a data frame with the information of the users in current
         channel
         """
         # --Initialize channel_users_df as a copy of users_df:
         channel_users_df = users_df.copy()
         # --Find the unique set of users in channel:
-        channel_users_list = channel_messages_df['user'].unique()
+        channel_users_list = ch_msgs_df['user'].unique()
         # --Collect the indices of the users that are NOT in the channel:
         indices_to_drop = [i for i in range(len(users_df)) if users_df.at[i, 'id'] not in channel_users_list]
         # --Drop the rows on indices_to_drop:
@@ -449,7 +449,7 @@ class SlackMessages:
         """
         for index in df_messages.index.values:
             i_df = df_users[df_users['id'] == df_messages.at[index, 'user']]
-            # --If users in channel_messages_df is not in all_users_df:
+            # --If users in ch_msgs_df is not in all_users_df:
             if i_df['display_name'].shape[0] == 0 \
                     and df_messages.at[index, 'user'] == 'USLACKBOT':
                 df_messages.at[index, 'name'] = 'USLACKBOT'
@@ -462,7 +462,7 @@ class SlackMessages:
                 df_messages.at[index, 'display_name'] = "(user not found)"
                 df_messages.at[index, 'is_bot'] = "(user not found)"
                 df_messages.at[index, 'deactivated'] = "(user not found)"
-            # --If users in channel_messages_df is in all_users_df:
+            # --If users in ch_msgs_df is in all_users_df:
             else:
                 df_messages.at[index, 'name'] = i_df['name'].values[0]
                 df_messages.at[index, 'display_name'] = i_df['display_name'].values[0]
@@ -605,12 +605,101 @@ class SlackMessages:
         df = clean.reset_indices(df)
         return df
 
-    def apply_excel_adjustments(self, file_path, settings_mod):
+    def id_automatic_msgs(self, df):
+        """ Get the indices of the messages sent automatically after an action
+        has been taken on a Slack channel (rename channel, make the channel
+        public and if an user joined or left the channel), and messages sent
+        by a bot.
+        """
+        indices = []
+        for i in range(len(df)):
+            msg_id = df.at[i, 'msg_id']
+            is_bot = df.at[i, 'is_bot']
+            if 'channel_join' in msg_id or \
+                    'channel_leave' in msg_id or \
+                    'channel_name' in msg_id or \
+                    'channel_canvas_updated' in msg_id or \
+                    'channel_convert_to_public' in msg_id:
+                indices.append(i)
+            if is_bot is True or is_bot == 'True':  # review. Not being applied
+                indices.append(i)
+                print('bot message identified')
+        return indices
+
+    def get_automatic_msgs(self, df):
+        """ Returns a dataframe with the automatic messages identified through
+        id_automatic_msgs.
+        """
+        df_ = df.loc[self.id_automatic_msgs(df)]
+        return clean.reset_indices(df_)
+
+    def remove_automatic_msgs(self, df):
+        """ Returns a dataframe without the the automatic messages identified
+        through id_automatic_msgs.
+        """
+        indices2drop = self.id_automatic_msgs(df)
+        df_ = df.copy()
+        df_.drop(indices2drop, inplace=True)
+        clean.reset_indices(df_)
+        return df_
+
+    def id_emojis_in_text(self, df):
+        """ Returns a dataframe with an additional column "contained_emoji",
+        indicating if the message had any emoji on the first place.
+        No backup of the emojis is kept.
+        """
+        pattern = r'(:)([a-z0-9\_\-\+]+)(:)'
+        for i in range(len(df)):
+            text = df.at[i, 'text']
+            match = re.search(pattern, text)
+            if match is None:
+                df.at[i, 'contained_emoji'] = False
+            else:
+                df.at[i, 'contained_emoji'] = True
+                df.at[i, 'text'] = re.sub(pattern, "", text)
+        return df
+
+    def remove_emojis_in_text(self, df):
+        """ Returns a dataframe where the emojis in "text" has been removed """
+        pattern = r'(:)([a-z0-9\_\-\+]+)(:)'
+        for i in range(len(df)):
+            if df.at[i, 'contained_emoji'] is True:
+                df.at[i, 'text'] = re.sub(pattern, "", df.at[i, 'text'])
+        return df
+
+    def id_short_msgs(self, df, n_char=15):
+        """ Returns a list of indices of messages that contain less characters
+        than the given n_char value.
+        """
+        indices = []
+        for i in range(len(df)):
+            text = df.at[i, 'text']
+            if len(text) <= n_char:
+                indices.append(i)
+        return indices
+
+    def get_short_msgs(self, df, n_char):
+        """ Returns a dataframe including only the short messages identified
+        with id_short_messages.
+        """
+        df_ = df.loc[self.id_short_msgs(df, n_char)]
+        return clean.reset_indices(df_)
+
+    def remove_short_msgs(self, df, n_char):
+        """ Returns a dataframe without the short messages identifies with
+        id_short_messages.
+        """
+        indices2drop = self.id_short_msgs(df, n_char)
+        df_ = df.copy()
+        df_.drop(indices2drop, inplace=True)
+        return clean.reset_indices(df_)
+
+    def apply_excel_adjustments(self, file_path, ws_name, settings_mod):
         """ Defines the sequence of changes to be done in the Excel file
         given the user's inputs in the module settings_mod.
         """
         xl = excel.ExcelFormat(file_path)
-        ws = xl.get_active_sheet()
+        ws = xl.get_sheet(ws_name)
         xl.set_cell_width(ws, settings_mod.column_widths)
         xl.set_allignment(ws, 'top')
         xl.format_first_row(ws,
@@ -628,8 +717,6 @@ class SlackMessages:
         for column in settings_mod.text_type_cols:
             xl.format_text_cells(ws, column)
         xl.save_changes()
-        # --Review name of Excel file:
-        rename(file_path, file_path.replace(' ', '-'))
 
     def get_all_messages_df(self):
         """ Most generally, it iterates over all the Slack channels and
@@ -647,132 +734,124 @@ class SlackMessages:
 
                 # --Define the name of the current channel and the source
                 # --path containing its json files:
-                curr_channel_name = self.channels_names[i_channel]
+                curr_ch_name = self.channels_names[i_channel]
                 print(
-                    curr_channel_name, datetime.now().time(),
+                    curr_ch_name, datetime.now().time(),
                     ' Set-up channel name and path to directory'
                     )
 
                 # --Collect all the current_channel's messages in
-                # --channel_messages_df::
+                # ch_msgs_df::
                 json_list = self.all_channels_jsonFiles_dates[i_channel]
-                channel_messages_df = self.get_channel_messages_df(
-                    self.slackexport_folder_path, curr_channel_name, json_list
+                ch_msgs_df = self.get_ch_msgs_df(
+                    self.slackexport_folder_path, curr_ch_name, json_list
                     )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Collected channel messages from the json files'
-                    )
-                if len(channel_messages_df) < 1:
+                print(f'{curr_ch_name} Collected channel messages from the json files')
+                if len(ch_msgs_df) < 1:
                     print(
-                        "for the folder ", curr_channel_name,
-                        "messages_number= ", len(channel_messages_df),
+                        "for the folder ", curr_ch_name,
+                        "messages_number= ", len(ch_msgs_df),
                         "there is no channel's folder", '\n'
                         )
                     continue
 
                 # --Collect all the users in the current channel:
-                channel_users_df = self.get_channel_users_df(
-                    channel_messages_df, self.all_users_df
-                    )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Collected users in current channel'
-                    )
+                channel_users_df = self.get_channel_users_df(ch_msgs_df,
+                                                             self.all_users_df)
+                print(f'{curr_ch_name} Collected users in current channel')
 
                 # --Use channel_users_df to fill-in the user's information in
-                # --channel_messages_df:
-                self.add_users_info_to_messages(
-                    channel_messages_df, channel_users_df
-                    )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Included the users information on channel_messages_df'
-                    )
+                # --ch_msgs_df:
+                self.add_users_info_to_messages(ch_msgs_df, channel_users_df)
+                print(f'{curr_ch_name} Included the users info on ch_msgs_df')
 
                 # --Replace user and team identifiers with their
-                # --display_names whenever present in a message:
-                self.user_id_to_name(channel_messages_df, channel_users_df)
-                self.channel_id_to_name(channel_messages_df, channel_users_df)
-                self.parent_user_id_to_name(
-                    channel_messages_df, channel_users_df
-                    )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    " User's id replaced by their names in messages"
-                    )
+                # display_names whenever present in a message:
+                self.user_id_to_name(ch_msgs_df, channel_users_df)
+                self.channel_id_to_name(ch_msgs_df, channel_users_df)
+                self.parent_user_id_to_name(ch_msgs_df, channel_users_df)
+                print(f"{curr_ch_name} User's id replaced by their names")
 
                 # --Extract hyperlinks from messages, if present
-                # --(extracted as a list; edit if needed):
-                self.extract_urls(channel_messages_df)
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' URLs extracted from messages'
-                    )
+                # (extracted as a list; edit if needed):
+                self.extract_urls(ch_msgs_df)
+                print(f'{curr_ch_name} URLs extracted from messages')
 
                 # --Change format of the time in seconds to a date in the
-                # --CST time-zone:
-                self.ts_to_tz(channel_messages_df, 'ts', 'msg_date')
-                self.ts_to_tz(channel_messages_df, 'json_mod_ts', 'json_mod_date')
-                self.ts_to_tz(channel_messages_df, 'ts_latest_reply', 'latest_reply_date')
-                self.ts_to_tz(channel_messages_df, 'ts_thread', 'thread_date')
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Formated the dates and times in the dataframe'
-                    )
+                # CST time-zone:
+                self.ts_to_tz(ch_msgs_df, 'ts', 'msg_date')
+                self.ts_to_tz(ch_msgs_df, 'json_mod_ts', 'json_mod_date')
+                self.ts_to_tz(ch_msgs_df, 'ts_latest_reply', 'latest_reply_date')
+                self.ts_to_tz(ch_msgs_df, 'ts_thread', 'thread_date')
+                print(f'{curr_ch_name} Formated the dates and times')
 
-                # --Sort the dataframe by msg_date:
-                channel_messages_df.sort_values(
-                    by='msg_date', inplace=True, ignore_index=True
-                    )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Sorted rows by msg_date'
-                    )
+                # --Identify if text has emojis:
+                ch_msgs_df = self.id_emojis_in_text(ch_msgs_df)
+                print(f'{curr_ch_name} Checked for emojis in messages')
 
                 # --Parse for check-in messages:
-                channel_messages_df = checkins.parse_nrows(
-                    channel_messages_df, self.missing_value
-                    )
-                channel_messages_df = self.drop_extra_unparsed_rows(
-                    channel_messages_df
-                    )
-                column_names_checkins = [
-                    'projects_parsed', 'keywords_parsed', 'project_name',
-                    'working_on', 'progress_and_roadblocks', 'progress',
-                    'roadblocks', 'plans_for_following_week', 'meetings']
-                column_names_order = ['msg_id', 'msg_date', 'user', 'name',
-                                      'display_name', 'deactivated', 'is_bot',
-                                      'type', 'text', 'reply_count',
-                                      'reply_users_count', 'latest_reply_date',
-                                      'thread_date', 'parent_user_name',
-                                      'URL(s)'] + column_names_checkins
-                channel_messages_df = channel_messages_df[column_names_order]
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Parsed check-in messages \n'
-                    )
+                ch_msgs_df = checkins.parse_nrows(ch_msgs_df,
+                                                  self.missing_value)
+                ch_msgs_df = self.drop_extra_unparsed_rows(ch_msgs_df)
+                print(f'{curr_ch_name} Parsed check-in messages')
 
-                # --Write channel_messages_df to a .xlsx file:
-                channel_messages_mindate = channel_messages_df['msg_date'].min().split(" ")[0]
-                channel_messages_maxdate = channel_messages_df['msg_date'].max().split(" ")[0]
-                channel_messages_filename = f"{curr_channel_name}_{channel_messages_mindate}_to_{channel_messages_maxdate}"
-                channel_messages_folder_path = f"{self.save_path}/{channel_messages_filename}.xlsx"
-                channel_messages_df.to_excel(
-                    f"{channel_messages_folder_path}", index=False
-                    )
+                # --Build df with pruned messages:
+                sel_msgs_df = self.remove_automatic_msgs(ch_msgs_df)
+                sel_msgs_df = self.remove_emojis_in_text(sel_msgs_df)
+                sel_msgs_df = self.remove_short_msgs(sel_msgs_df, n_char=15)
+                print(f'{curr_ch_name} Built df with selected rows')
 
-                # --Apply Excel adjustments:
-                self.apply_excel_adjustments(
-                    channel_messages_folder_path, self.settings_messages
-                    )
-                print(
-                    curr_channel_name, datetime.now().time(),
-                    ' Wrote curated messages to xlsx files \n'
-                    )
+                # --Build df with descarded messages (after being pruned):
+                auto_msgs = self.get_automatic_msgs(ch_msgs_df)
+                short_msgs = self.get_short_msgs(ch_msgs_df, n_char=15)
+                dis_msgs = pd.concat([auto_msgs, short_msgs],
+                                     axis=0, ignore_index=False)
+                dis_msgs.sort_values(by='msg_date',
+                                     inplace=True, ignore_index=True)
+                print(f'{curr_ch_name} Built df with filtered-out messages')
 
-                dfs_list.append(channel_messages_df)
+                # --Rearrange columns:
+                column_names_order = self.settings_messages.columns_order
+                ch_msgs_df = ch_msgs_df[column_names_order]
+                sel_msgs_df = sel_msgs_df[column_names_order]
+                dis_msgs = dis_msgs[column_names_order]
+                print(f'{curr_ch_name} Rearranged columns')
+
+                # --Sort rows by msg_date:
+                ch_msgs_df.sort_values(by='msg_date',
+                                       inplace=True, ignore_index=True)
+                sel_msgs_df.sort_values(by='msg_date',
+                                        inplace=True, ignore_index=True)
+                dis_msgs.sort_values(by='msg_date',
+                                     inplace=True, ignore_index=True)
+                print(f'{curr_ch_name} Sorted rows by msg_date')
+
+                # --Write ch_msgs_df to a .xlsx file:
+                msgs_mindate = ch_msgs_df['msg_date'].min().split(" ")[0]
+                msgs_maxdate = ch_msgs_df['msg_date'].max().split(" ")[0]
+                curr_ch_name = curr_ch_name.replace(' ', '-')
+                ch_msgs_filename = f"{curr_ch_name}_{msgs_mindate}_to_{msgs_maxdate}"
+                ch_msgs_folder_path = f"{self.save_path}/{ch_msgs_filename}.xlsx"
+                path = f"{ch_msgs_folder_path}"
+                with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                    sel_msgs_df.to_excel(writer, index=False,
+                                         sheet_name="Relevant messages")
+                    dis_msgs.to_excel(writer, index=False,
+                                      sheet_name="Filtered-out messages")
+                    ch_msgs_df.to_excel(writer, index=False,
+                                        sheet_name="All messages")
+
+                # --Apply formatting of Excel worksheets:
+                self.apply_excel_adjustments(path, 'All messages',
+                                             self.settings_messages)
+                self.apply_excel_adjustments(path, 'Relevant messages',
+                                             self.settings_messages)
+                self.apply_excel_adjustments(path, 'Filtered-out messages',
+                                             self.settings_messages)
+                print(f'{curr_ch_name} Wrote curated messages to Excel \n')
+
+                dfs_list.append(ch_msgs_df)
 
         print(datetime.now().time(), 'Done')
 
-        return channel_messages_df
+        return ch_msgs_df

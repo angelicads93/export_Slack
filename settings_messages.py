@@ -99,6 +99,15 @@ sample_text_list = [
 # ### EXCEL FORMATTING:
 # #####################
 #
+# 0. Set the order of the columns in the Excel table:
+columns_order = ['msg_id', 'msg_date', 'user', 'name', 'display_name',
+                 'deactivated', 'is_bot', 'type', 'text', 'contained_emoji',
+                 'reply_count', 'reply_users_count', 'latest_reply_date',
+                 'thread_date', 'parent_user_name', 'URL(s)',
+                 'projects_parsed', 'keywords_parsed', 'project_name',
+                 'working_on', 'progress_and_roadblocks', 'progress',
+                 'roadblocks', 'plans_for_following_week', 'meetings']
+#
 # 1. Change the width of the Excel cells:
 w_date = 19
 w_name = 19
@@ -108,7 +117,7 @@ w_count = 8
 column_widths = {
     'msg_id': 12, 'msg_date': w_date, 'user': 15, 'name': w_name,
     'display_name': w_name, 'deactivated': w_bool, 'is_bot': w_bool,
-    'type': 8, 'text': w_text, 'reply_count': w_count,
+    'type': 8, 'text': w_text, 'contained_emoji': w_bool, 'reply_count': w_count,
     'reply_users_count': w_count, 'latest_reply_date': w_date,
     'thread_date': w_date, 'parent_user_name': w_name,
     'URL(s)': w_text, 'projects_parsed': w_count, 'keywords_parsed': w_count,
@@ -119,7 +128,7 @@ column_widths = {
 }
 # -----------------------------------------------------------------------------
 # 2. Set the alignment of cells containing long text:
-text_type_cols = ['I', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
+text_type_cols = ['I', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
 #
 # -----------------------------------------------------------------------------
 # 3. Format the height, color, font alignment and size of the first column:
@@ -130,15 +139,15 @@ font_size_1strow = 9
 font_bold_1strow = True
 cell_color_1strow = [
     # ("color_code", [list the columns' letter])
-    ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']),
-    ("CDB5B7", ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'])
+    ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']),
+    ("CDB5B7", ['Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'])
 ]
 # -----------------------------------------------------------------------------
 # 4. Distinguish special columns by changing the color of their font:
 font_color_in_column = [
     # ["column_letter', 'color_code']
     ('I', "0707C5"),  # "text" to blue
-    ('N', "c10105"),  # "parent_user_name" to red
+    ('O', "c10105"),  # "parent_user_name" to red
     ('E', "c10105")   # "display_name" to red
 ]
 # -----------------------------------------------------------------------------
@@ -157,7 +166,7 @@ highlights = [
     # 5.1. Highlight cases where the user is a bot.
     {"activate": True,
     "trigger": ["G", "==", True],
-    "columns": ["C", "D", "E", "F", "G", "P", "Q", "R", "S", "T", "U", "V", "W", "X"],
+    "columns": ["C", "D", "E", "F", "G", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"],
     "cell_color": "FBBF8F",
     "font_size": 11,
     "font_bold": False,
@@ -166,7 +175,7 @@ highlights = [
     # 5.2. Highlight cases there the message is part of a thread.
     {"activate": True,
     "trigger": ["H", "==", "thread"],
-    "columns": ["H", "I", "P", "Q", "R", "S", "T", "U", "V", "W", "X"],
+    "columns": ["H", "I", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"],
     "cell_color": "FBFB99",
     "font_size": 11,
     "font_bold": False,
@@ -174,8 +183,8 @@ highlights = [
     },
     # 5.3. Highlight the cases where there is reply_counts.
     {"activate": True,
-    "trigger": ["J", "!=", "n/d"],
-    "columns": ["J", "K"],
+    "trigger": ["K", "!=", "n/d"],
+    "columns": ["K", "L"],
     "cell_color": "No Fill",
     "font_size": 12,
     "font_bold": True,
