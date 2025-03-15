@@ -16,6 +16,7 @@ sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
 import excel
 import clean
+import prune
 
 
 def parse_command_input():
@@ -51,7 +52,7 @@ def check_input(compilation_reports_path, excel_channels_path):
 
 
 def get_list_channels(source_path):
-    """ Retrieve the name of all the expected Slack channels from the 
+    """ Retrieve the name of all the expected Slack channels from the
     Slack-export source directory.
     """
     channels_path = os.listdir(source_path)
@@ -87,26 +88,26 @@ def add_channel_info(channel_path, channel_df):
     return channel_df
 
 
-def add_info_of_users_reports(channel_df):
+def add_info_of_users_reports(df):
     """ Get latest report date and number of messages in the given channel for
     all the users in the channel.
     """
-    users = channel_df['user'].unique()
+    users = df['user'].unique()
     for user in users:
-        user_df = channel_df[channel_df['user'] == user].sort_values(
+        user_df = df[df['user'] == user].sort_values(
             by='msg_date', inplace=False, ignore_index=True
             )
         latest_report_date = user_df['msg_date'].to_list()[-1]
         user_df['latest_report_date'] = [latest_report_date]*len(user_df)
         user_df['number_msgs_in_channel'] = len(user_df)
         if user == users[0]:
-            channel_df_ = user_df.copy()
+            df_out = user_df.copy()
         else:
-            channel_df_ = pd.concat(
-                [channel_df_, user_df], axis=0, ignore_index=False
+            df_out = pd.concat(
+                [df_out, user_df], axis=0, ignore_index=False
                 )
 
-    return channel_df_
+    return df_out
 
 
 def format_parsed_reports(df):
@@ -192,29 +193,38 @@ if __name__ == '__main__':
         channel_path = f"{excel_channels_path}/{file}"
 
         if check_channel(file_name, expected_channels) is True:
-            channel_df = pd.read_excel(channel_path, engine='openpyxl')
+            channel_df = pd.read_excel(channel_path, engine='openpyxl',
+                                       sheet_name='Relevant messages')
 
-            # --Add channels and reports info:
-            channel_df = add_channel_info(channel_path, channel_df)
-            channel_df = add_info_of_users_reports(channel_df)
+            if len(channel_df) > 0:
+                # --Add channels and reports info:
+                channel_df = add_channel_info(channel_path, channel_df)
+                channel_df = add_info_of_users_reports(channel_df)
 
-            # --Handle missing values:
-            channel_df = clean.handle_missing_values(channel_df, missing_value)
+                # --Handle missing values:
+                channel_df = clean.handle_missing_values(channel_df, missing_value)
 
-            # --Reorder columns:
-            channel_df = channel_df[settings_module.columns_order]
+                # --Reorder columns:
+                channel_df = channel_df[settings_module.columns_order]
 
-            # --Concatanate channel_df to final dataframe:
-            if file == os.listdir(excel_channels_path)[0]:
-                df = channel_df.copy()
-            else:
-                df = pd.concat([df, channel_df], axis=0, ignore_index=False)
+                # --Concatanate channel_df to final dataframe:
+                if file == os.listdir(excel_channels_path)[0]:
+                    df = channel_df.copy()
+                else:
+                    df = pd.concat([df, channel_df], axis=0, ignore_index=False)
+    clean.reset_indices(df)
     print('Information of all the check-in reports collected.')
 
     # --Set columns types:
     df['projects_parsed'] = df['projects_parsed'].astype('string')
     df['keywords_parsed'] = df['keywords_parsed'].astype('string')
     print('Set data type of columns.')
+
+    # --Get all messages with pruned rows:
+    df_pruned = prune.remove_automatic_msgs(df)
+    df_pruned = prune.remove_emojis_in_text(df_pruned)
+    df_short = prune.remove_short_msgs(df_pruned, n_char=20)
+    print('Retrieve all messages and pruned rows.')
 
     # --Select rows with un-parsed projects in official weekly report channel:
     df_unparsed = format_unparsed_reports(df, "think-biver-weekly-checkins")
@@ -231,9 +241,11 @@ if __name__ == '__main__':
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
         df_parsed.to_excel(writer, sheet_name=parsed_ws_name, index=False)
         df_unparsed.to_excel(writer, sheet_name=unparsed_ws_name, index=False)
+        df.to_excel(writer, sheet_name='All messages', index=False)
 
     # --Apply formatting of Excel worksheets:
     apply_excel_adjustments(path, parsed_ws_name, settings_module)
     apply_excel_adjustments(path, unparsed_ws_name, settings_module)
+    apply_excel_adjustments(path, 'All messages', settings_module)
 
     print('Excel file saved.')
