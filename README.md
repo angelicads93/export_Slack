@@ -162,8 +162,7 @@ table above, except for:
 |compilation_reports_path | Path where the file compilation_reports_file_path will be saved. | r"C:\Users\user_name\Documents\slackSource\Excel" |
 
 ### 2.2 Execute the analysis
-After you have provided the required information in the file `settings_stats.py`
-and `settings_messages.py`, proceed to run the following command:
+After you have provided the required information in the file `settings_stats.py`, proceed to run the following command:
 ```{script}
 cd VScode
 python stats.py --settings_file_path="..\settings_stats.py"
