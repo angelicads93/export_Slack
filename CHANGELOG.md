@@ -1,5 +1,13 @@
 # Change Log
 
+**03/16/2025**
+* Updated README and CHANGELOG.
+* Unified the structure of settings file for header_row and font_color_in_column.
+* Added name of reports channel to settings_stats file.
+* Added sheet_name when reading the channels Excel files.
+* Added pruning of channel messages. Filtered-out msgs are kept in a different Excel tab. 
+* Renamed variables in `messages.py` to simplify visual appearance of the code.
+
 **03/08/2025**
 * Added tab with unparsed weekly reports from (exclusively) the weekly-reports Slack-channel. 
 * Added filters in Excel table with compiled weekly reports, allowing filtering and/or sorting of all the columns.
