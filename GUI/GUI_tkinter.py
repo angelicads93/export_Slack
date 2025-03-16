@@ -14,7 +14,7 @@ parent_dir = dirname(os.getcwd())
 sys.path.append(parent_dir)
 sys.path.append(join(parent_dir, 'src'))
 import messages
-from settings import dest_name_ext, channels_json_name, users_json_name
+from settings_messages import dest_name_ext, channels_json_name, users_json_name
 
 
 class GUI(tk.Tk):
@@ -44,7 +44,7 @@ class GUI(tk.Tk):
         # --Title and size of the GUI:
         self.title("Slack2Excel")
         self.geometry('650x720')
-        self.resizable(0, 0)
+        #self.resizable(0, 0)
 
         # --Header:
         self.frame = tk.Frame(master=self, bg=self.bkgc)
@@ -210,7 +210,7 @@ class GUI(tk.Tk):
         self.labelHelp.pack(padx=pad_x, pady=(0, 5), fill='x')
 
         self.buttonContinue.pack(
-            padx=(4,30), pady=(5, 30), anchor='s', side='right', ipady=6,
+            padx=(4, 30), pady=(5, 30), anchor='s', side='right', ipady=6,
             after=self.labelHelp
         )
         self.buttonOK.pack(
@@ -298,7 +298,11 @@ class GUI(tk.Tk):
                 text='Please enter the path to the source directory'
             )
             self.labelHelp.configure(
-                text='HELP: The source directoy is the folder with the information exported from your Slack workspace. \nTo access its path, use your file explorer to find the desire folder, right-click on the name of the folder, select "Copy as path" and paste it in the entry box above.'
+                text='HELP: The source directoy is the folder with the '
+                + 'information exported from your Slack workspace. \nTo '
+                + 'access its path, use your file explorer to find the desire '
+                + 'folder, right-click on the name of the folder, select '
+                + '"Copy as path" and paste it in the entry box above.'
             )
             self.configure_labels(
                 [self.labelOrig], self.font_base_bold,  self.letterc
@@ -328,7 +332,11 @@ class GUI(tk.Tk):
                     text='Please enter the destination path'
                 )
                 self.labelHelp.configure(
-                    text='HELP: The destination directory is the folder were you wish to save the converted files. \nTo access its path, use your file explorer to find the desire folder, right-click on the name of the folder, select "Copy as path" and paste it in the entry box above.'
+                    text='HELP: The destination directory is the folder were '
+                    + 'you wish to save the converted files. \nTo access its '
+                    + 'path, use your file explorer to find the desire '
+                    + 'folder, right-click on the name of the folder, select '
+                    + '"Copy as path" and paste it in the entry box above.'
                 )
                 self.configure_labels(
                     [self.labelDest], self.font_base_bold,  self.letterc
@@ -417,7 +425,9 @@ class GUI(tk.Tk):
                             text='Please enter a Slack channel'
                         )
                         self.labelHelp.configure(
-                            text='Help: Click on the icon of the drop-down menu above and select the name of the channel you wish to analyze.'
+                            text='Help: Click on the icon of the drop-down '
+                            + 'menu above and select the name of the channel '
+                            + 'you wish to analyze.'
                         )
                         self.configure_labels(
                             [self.labelChannel],
@@ -443,7 +453,11 @@ class GUI(tk.Tk):
                                 text='Please enter "Yes" or "No".'
                             )
                             self.labelHelp.configure(
-                                text=f'HELP: This file contains general information of all the channels present in your Slack workspace, and it would be save in your destination path as _{channels_json_name}.'
+                                text='HELP: This file contains general '
+                                + 'information of all the channels present in '
+                                + 'your Slack workspace, and it would be save '
+                                + 'in your destination path as '
+                                + f'_{channels_json_name}.'
                             )
                             self.configure_labels(
                                 [self.labelChannelFlag],
@@ -469,7 +483,11 @@ class GUI(tk.Tk):
                                 text='Please enter "Yes" or "No".'
                             )
                             self.labelHelp.configure(
-                                text=f'HELP: This file contains general information of all the users present in your Slack workspace, and it would be save in your destination path as _{users_json_name}.'
+                                text='HELP: This file contains general'
+                                + 'information of all the users present in '
+                                + 'your Slack workspace, and it would be save '
+                                + 'in your destination path as '
+                                + f'_{users_json_name}.'
                             )
                             self.reset_widgets()
                             self.configure_labels(
@@ -491,7 +509,7 @@ class GUI(tk.Tk):
                                  ], 'disabled', self.font_base
                             )
 
-                        else: # --All good!
+                        else:  # --All good!
                             print('All input information provided')
                             print('Checking consistency')
                             print(self.path_orig)
@@ -512,7 +530,6 @@ class GUI(tk.Tk):
                             self.buttonContinue.configure(
                                 state='normal', command=self.setup_inputs
                             )
-
 
     def setup_inputs(self):
         """ Inspects the directories and creates the inputs.py file """
@@ -602,6 +619,7 @@ class GUI(tk.Tk):
         self.quit()
 
 
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
     gui = GUI()
     gui.mainloop()
