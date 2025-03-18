@@ -8,7 +8,7 @@ Created on Sun Oct 27 19:36:24 2024
 import tkinter as tk
 import sys
 import os
-from os.path import exists, dirname, join
+from os.path import exists, dirname, join, isdir
 
 parent_dir = dirname(os.getcwd())
 sys.path.append(parent_dir)
@@ -19,7 +19,7 @@ from settings_messages import dest_name_ext, channels_json_name, users_json_name
 
 class GUI(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, inputs_file_path, settings_messages_file_path):
         super().__init__()
 
         # --Define text styles:
@@ -40,6 +40,8 @@ class GUI(tk.Tk):
         # --Initialize a default inputs.py file:
         self.build_input_file('channel', 'path_orig', 'path_dest',
                               False, False)
+        self.inputs = os.path.basename(inputs_file_path).split(".")[0]
+        self.settings_messages = os.path.basename(settings_messages_file_path).split(".")[0]
 
         # --Title and size of the GUI:
         self.title("Slack2Excel")
@@ -92,7 +94,7 @@ class GUI(tk.Tk):
         )
 
         # --Option Menu for the available channels in the source path:
-        self.default_str_channel = ' '
+        self.default_str_channel = ''
         self.channel_var = tk.StringVar(self.frame)
         self.channel_var.set(self.default_str_channel)
         self.Channel = tk.OptionMenu(
@@ -237,9 +239,9 @@ class GUI(tk.Tk):
         f.write('# --Slack users?:' + '\n')
         f.write(f"write_all_users_info = {users_flag}" + '\n\n')
         f.write('# --Insert path where the LOCAL copy of the GoogleDrive folder is:' + '\n')
-        f.write(f"slackexport_folder_path = '{path_orig}'" + '\n\n')
+        f.write(f"slackexport_folder_path = r'{path_orig}'" + '\n\n')
         f.write('# --Insert path where the converted files will be saved:' + '\n')
-        f.write(f"converted_directory = '{path_dest}'" + '\n\n')
+        f.write(f"converted_directory = r'{path_dest}'" + '\n\n')
         f.close()
 
     def configure_labels(self, widgets, font_, color_):
@@ -324,6 +326,11 @@ class GUI(tk.Tk):
         elif self.path_orig != '' and exists(self.path_orig) is True:
             self.reset_widgets()
             self.entryDest.configure(state='normal')
+            self.build_input_file(self.channel_var_get,
+                                  self.path_orig,
+                                  self.path_dest,
+                                  self.channels_flag,
+                                  self.users_flag)
 
             # --2. VERIFY DESTINATION PATH:
             if self.path_dest == '':
@@ -376,15 +383,18 @@ class GUI(tk.Tk):
                     print('AG: Cannot write in the destination directory')
                 else:
                     self.reset_widgets()
+                    self.build_input_file(self.channel_var_get,
+                                          self.path_orig,
+                                          self.path_dest,
+                                          self.channels_flag,
+                                          self.users_flag)
                     # --3. VERIFY CHANNEL:
                     # --Get names of channels in the source directory:
-                    inspect_source = messages.InspectSource(
-                        '', self.path_orig, self.path_dest
-                    )
-                    # --Sort in alphabetical order:
-                    channels_names = sorted(
-                        inspect_source.get_channels_names()
-                    )
+                    all_in_sourceDir = os.listdir(self.path_orig)
+                    channels_names = [all_in_sourceDir[i]
+                                      for i in range(len(all_in_sourceDir))
+                                      if isdir(f"{self.path_orig}/{all_in_sourceDir[i]}") is True]
+                    channels_names = sorted(channels_names)
                     # --Add option of analysing all channels:
                     channels_names.insert(0, 'All-channels')
                     if dest_name_ext in channels_names:
@@ -409,6 +419,7 @@ class GUI(tk.Tk):
                             foreground=self.letterc,
                             justify='left', direction='below', anchor='w'
                         )
+
                         self.Channel['menu'].configure(
                             bg=self.boxc, fg=self.letterc,
                             activebackground='gray',
@@ -444,9 +455,13 @@ class GUI(tk.Tk):
                              self.buttonUsersYes, self.buttonUsersNo],
                             'disabled', self.font_base
                         )
-
                     else:  # if channel is assigned
                         self.reset_widgets()
+                        self.build_input_file(self.channel_var_get,
+                                              self.path_orig,
+                                              self.path_dest,
+                                              self.channels_flag,
+                                              self.users_flag)
                         # --4. VERIFY CHANNELS FLAG:
                         if self.button_channels.get() == 'empty':
                             self.labelError.configure(
@@ -518,6 +533,11 @@ class GUI(tk.Tk):
                             print(self.channels_flag)
                             print(self.users_flag)
                             self.reset_widgets()
+                            self.build_input_file(self.channel_var_get,
+                                                  self.path_orig,
+                                                  self.path_dest,
+                                                  self.channels_flag,
+                                                  self.users_flag)
                             self.configure_widgets_int(
                                 [self.Channel],
                                 'normal', self.font_base
@@ -533,10 +553,8 @@ class GUI(tk.Tk):
 
     def setup_inputs(self):
         """ Inspects the directories and creates the inputs.py file """
-        inspect_source = messages.InspectSource(
-            self.channel_var_get,
-            self.path_orig, self.path_dest
-        )
+        inspect_source = messages.InspectSource(self.inputs, 
+                                                self.settings_messages)
         save_in_path = inspect_source.save_in_path()
         inspect_source.check_save_path_exists(save_in_path)
         inspect_source.check_expected_files_exists()
@@ -575,18 +593,13 @@ class GUI(tk.Tk):
     def execute_analysis(self):
         """ Executes the main functions in the messages module. """
         try:
-            scu = messages.SlackChannelsAndUsers(
-                self.channel_var_get, self.channels_flag, self.users_flag,
-                self.path_orig, self.path_dest
-            )
+            scu = messages.SlackChannelsAndUsers(self.inputs, 
+                                                 self.settings_messages)
             scu.get_all_channels_info()
             scu.get_all_users_info()
 
             # --From the class SlackMessages:
-            sm = messages.SlackMessages(
-                self.channel_var_get, self.channels_flag, self.users_flag,
-                self.path_orig, self.path_dest
-            )
+            sm = messages.SlackMessages(self.inputs, self.settings_messages)
             sm.get_all_messages_df()
 
             # --Update GUI:
@@ -621,5 +634,5 @@ class GUI(tk.Tk):
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    gui = GUI()
+    gui = GUI('../inputs.py', '../settings_messages.py')
     gui.mainloop()

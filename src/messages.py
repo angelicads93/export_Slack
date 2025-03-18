@@ -34,7 +34,6 @@ class InspectSource:
         self.dest_name_ext = self.settings_messages.dest_name_ext
         self.channels_json_name = self.settings_messages.channels_json_name
         self.users_json_name = self.settings_messages.users_json_name
-        self.continue_analysis = self.settings_messages.continue_analysis
 
     def set_flag_analyze_all_channels(self):
         """ Sets a flag to keep track if one or all the channels are going to
@@ -113,7 +112,9 @@ class InspectSource:
                 self.channels_names = [self.chosen_channel_name]
         else:
             all_in_sourceDir = listdir(self.slackexport_folder_path)
-            self.channels_names = [all_in_sourceDir[i] for i in range(len(all_in_sourceDir)) if isdir(f"{self.slackexport_folder_path}/{all_in_sourceDir[i]}") is True]
+            self.channels_names = [all_in_sourceDir[i]
+                                   for i in range(len(all_in_sourceDir))
+                                   if isdir(f"{self.slackexport_folder_path}/{all_in_sourceDir[i]}") is True]
 
         return self.channels_names
 
@@ -165,15 +166,13 @@ class InspectSource:
         else:
             # --Check that the channels.json files exists:
             if exists(f"{self.slackexport_folder_path}/{self.channels_json_name}") is False:
-                print(
-                    f'File {self.channels_json_name} was not found in the source directory'
-                    )
+                print(f'File {self.channels_json_name} was not found in the '
+                      + 'source directory')
                 self.continue_analysis = False
             # --Check that the users.json files exists:
             if exists(f"{self.slackexport_folder_path}/{self.users_json_name}") is False:
-                print(
-                    f'File "{self.users_json_name}" was not found in the source directory'
-                    )
+                print(f'File "{self.users_json_name}" was not found in the '
+                      + 'source directory')
                 self.continue_analysis = False
             # --Get a list with the name of the channels to be converted:
             self.channels_names = self.get_channels_names()
@@ -215,7 +214,7 @@ class SlackChannelsAndUsers:
 
         self.inspect_source = InspectSource("inputs", "settings_messages")
         self.save_path = self.inspect_source.save_in_path()
-        self.continue_analysis = self.inspect_source.continue_analysis
+        self.continue_analysis = True
 
     def write_info_to_file(self, write_file_flag, filename, df, path):
         """ Writes a given dataframe to an Excel file """
@@ -321,10 +320,8 @@ class SlackChannelsAndUsers:
             ]
 
         # --Handling missing values in all_users_df:
-        for feature in [
-                'display_name', 'name', 'team_id', 'id', 'profile_title',
-                'profile_real_name'
-                ]:
+        for feature in ['display_name', 'name', 'team_id', 'id',
+                        'profile_title', 'profile_real_name']:
             clean.replace_empty_space(self.all_users_df, feature, self.missing_value)
 
         # --Write all users's info to .xlsx files, if requested by user:
@@ -350,11 +347,11 @@ class SlackMessages:
         self.channels_names = self.inspect_source.get_channels_names()
         self.all_channels_jsonFiles_dates = self.inspect_source.get_all_channels_json_names()
         self.save_path = self.inspect_source.save_in_path()
-        self.continue_analysis = self.inspect_source.continue_analysis
 
         self.slack_channels_users = SlackChannelsAndUsers(
             "inputs", "settings_messages")
         self.all_users_df = self.slack_channels_users.get_all_users_info()
+        self.continue_analysis = self.slack_channels_users.continue_analysis
 
     def slack_json_to_dataframe(self, slack_json):
         """ Extracts channel's messages from a JSON file """
@@ -433,7 +430,9 @@ class SlackMessages:
         # --Find the unique set of users in channel:
         channel_users_list = ch_msgs_df['user'].unique()
         # --Collect the indices of the users that are NOT in the channel:
-        indices_to_drop = [i for i in range(len(users_df)) if users_df.at[i, 'id'] not in channel_users_list]
+        indices_to_drop = [i
+                           for i in range(len(users_df))
+                           if users_df.at[i, 'id'] not in channel_users_list]
         # --Drop the rows on indices_to_drop:
         channel_users_df.drop(
             channel_users_df.index[indices_to_drop], inplace=True
@@ -738,7 +737,8 @@ class SlackMessages:
                 ch_msgs_df = self.get_ch_msgs_df(
                     self.slackexport_folder_path, curr_ch_name, json_list
                     )
-                print(f'{curr_ch_name} Collected channel messages from the json files')
+                print(f'{curr_ch_name} Collected channel messages from the '
+                      + 'json files')
                 if len(ch_msgs_df) < 1:
                     print(
                         "for the folder ", curr_ch_name,
