@@ -21,14 +21,15 @@ def match_to_category(line, category_name):
     """
     line = line.lower().lstrip('*-_•.◦ 1234567890').rstrip('*-_•.◦ 1234567890')
     line = line.replace('*', '').replace(' ', '').replace('_', '')
-    line = line.replace("&gt;","")
+    line = line.replace("&gt;", "")
     out = False
-    for keyword in keywords_dictionary[category_name]:
-        keyword_ = keyword.lower().replace(' ', '')
-        line_ = (line.split(':')[0]).lower().replace(' ', '')
-        if keyword_ == line_:
-            out = True
-            break
+    if ":" in line:
+        for keyword in keywords_dictionary[category_name]:
+            keyword_ = keyword.lower().replace(' ', '')
+            line_ = (line.split(':')[0]).lower().replace(' ', '')
+            if keyword_ == line_:
+                out = True
+                break
     return out
 
 
@@ -262,7 +263,9 @@ def parse_nrows(df, missing_value):
         # --Fill the empty df with categories:
         if len(indices_start_of_category) > 0 and projects_parsed > 0:
             blocks_list = group_lines(text, indices_start_of_category)
+            print('blocks_list = ', blocks_list)
             answers = extract_answers(blocks_list)
+            print('answers = ', answers)
             df_i_blocks = checkin_categories_to_df_nrows(
                 df_i_blocks, text, indices_start_of_category,
                 category_names, answers
