@@ -263,9 +263,7 @@ def parse_nrows(df, missing_value):
         # --Fill the empty df with categories:
         if len(indices_start_of_category) > 0 and projects_parsed > 0:
             blocks_list = group_lines(text, indices_start_of_category)
-            print('blocks_list = ', blocks_list)
             answers = extract_answers(blocks_list)
-            print('answers = ', answers)
             df_i_blocks = checkin_categories_to_df_nrows(
                 df_i_blocks, text, indices_start_of_category,
                 category_names, answers

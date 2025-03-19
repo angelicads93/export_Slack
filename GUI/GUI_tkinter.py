@@ -543,7 +543,6 @@ class GUI(tk.Tk):
 
                         else:  # --All good!
                             print('All input information provided')
-                            print('Checking consistency')
                             print(self.path_orig)
                             print(self.path_dest)
                             print(self.channel_var_get)
@@ -571,14 +570,7 @@ class GUI(tk.Tk):
                             )
 
     def setup_inputs(self):
-        """ Inspects the directories and creates the inputs.py file """
-        inspect_source = messages.InspectSource(self.inputs,
-                                                self.settings_messages)
-        save_in_path = inspect_source.save_in_path()
-        inspect_source.check_save_path_exists(save_in_path)
-        inspect_source.check_expected_files_exists()
-        channels_names = inspect_source.get_channels_names()
-
+        """ Writes final version of inputs.py file and updates the GUI. """
         # --Generate inputs.py file:
         if self.channel_var_get == 'All-channels':
             self.channel_var_get = ''
