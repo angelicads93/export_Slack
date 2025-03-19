@@ -6,6 +6,7 @@ Created on Sun Oct 27 19:36:24 2024
 """
 
 import tkinter as tk
+from tkinter import ttk
 import sys
 import os
 from os.path import exists, dirname, join, isdir
@@ -94,17 +95,49 @@ class GUI(tk.Tk):
         )
 
         # --Option Menu for the available channels in the source path:
+        # Set the style for the dropdowm menu:
+        self.style = ttk.Style()
+        self.style.theme_use('clam')  # Use this to control the combobox border
+        self.style.map(
+            'Custom.TCombobox',
+            fieldbackground=[('readonly', self.boxc), ('!readonly', self.boxc)],  # main box
+            selectbackground=[('readonly', self.boxc), ('!readonly', self.boxc)],  # text highlight
+            focusfill=[('readonly', self.boxc), ('!readonly', self.boxc)],
+            lightcolor=[('readonly', self.boxc), ('!readonly', self.boxc)],
+            darkcolor=[('readonly', self.boxc), ('!readonly', self.boxc)],
+            bordercolor=[('readonly', self.boxc), ('!readonly', self.boxc)],
+            background=[('readonly', self.boxc), ('!readonly', self.boxc)],
+            foreground=[('readonly', self.letterc), ('disabled', 'gray')])
+        self.style.configure(
+            'Custom.TCombobox',
+            arrowcolor=self.letterc,
+            borderwidth=0,
+            selectforeground=self.letterc,  # letters in main box
+            font=self.font_base,
+            relief='FLAT')
+        self.style.map(
+            "Vertical.TScrollbar",
+            background=[("active", self.titlec), ("!active", self.titlec)],
+            arrowcolor=[("active", self.boxc), ("!active", self.boxc)])
+        self.style.configure(
+            "Vertical.TScrollbar",
+            troughcolor=self.letter_bkg,
+            borderwidth=0, relief='flat',
+            gripcount=0)
+
+        self.tk.call('option', 'add', '*TCombobox*Listbox.background', self.boxc)
+        self.tk.call('option', 'add', '*TCombobox*Listbox.font', self.font_base)
+        self.tk.call('option', 'add', '*TCombobox*Listbox.foreground', self.letterc)
+        self.tk.call('option', 'add', '*TCombobox*Listbox.selectBackground', self.titlec)
+
+        # Build the widget for the dropdown menu:
         self.default_str_channel = ''
         self.channel_var = tk.StringVar(self.frame)
         self.channel_var.set(self.default_str_channel)
-        self.Channel = tk.OptionMenu(
-            self.canvas, self.channel_var, value=[self.default_str_channel]
-        )
-        self.Channel.configure(
-            font=self.font_base, bg=self.boxc, fg=self.letterc,
-            width=600, border=0, highlightthickness=0,
-            state='disabled', justify='left', anchor='w'
-        )
+        self.comboBox = ttk.Combobox(
+            self.canvas, textvariable=self.channel_var, values=[],
+            style='Custom.TCombobox', state='readonly',
+            font=self.font_base, width=600)
 
         # --RadioButtons for converting channels.json:
         self.labelChannelFlag = tk.Label(
@@ -188,12 +221,12 @@ class GUI(tk.Tk):
         self.labelDest.pack(padx=pad_x, pady=0, anchor='w')
         self.entryDest.pack(padx=pad_x, pady=(0, 15), anchor='w', ipady=9)
         self.labelChannel.pack(padx=pad_x, pady=0, anchor='w')
-        self.Channel.pack(
+        self.comboBox.pack(
             padx=pad_x, after=self.labelChannel, anchor='w', ipady=9
         )
 
         self.labelChannelFlag.pack(
-            padx=pad_x, pady=(15, 0), after=self.Channel, anchor='w'
+            padx=pad_x, pady=(15, 0), after=self.comboBox, anchor='w'
         )
         self.buttonChannelsYes.pack(
             padx=20, pady=3, side='top', anchor='w',
@@ -254,7 +287,7 @@ class GUI(tk.Tk):
 
     def configure_widgets_int(self, widgets, state_, font_):
         """ Configure the state and font style of interactive weidgets. """
-        widgets_int = [self.entryOrig, self.entryDest, self.Channel,
+        widgets_int = [self.entryOrig, self.entryDest, self.comboBox,
                        self.buttonChannelsYes, self.buttonChannelsNo,
                        self.buttonUsersYes, self.buttonUsersNo]
         for widget in widgets:
@@ -403,33 +436,17 @@ class GUI(tk.Tk):
 
                     # --Activate menu with channels_name as choices:
                     if self.channel_var_get == self.default_str_channel:
-                        self.Channel.destroy()
+                        self.comboBox.destroy()
+                        self.values = channels_names
                         self.channel_var = tk.StringVar()
                         self.channel_var.set(self.default_str_channel)
-                        self.Channel = tk.OptionMenu(
-                            self.canvas,
-                            self.channel_var,
-                            *channels_names
-                        )
-                        self.Channel.configure(
-                            font=self.font_base, bg=self.boxc, fg=self.letterc,
-                            width=600, border=0, highlightthickness=0,
-                            borderwidth=0, activebackground=self.boxc,
-                            activeforeground=self.letterc,
-                            foreground=self.letterc,
-                            justify='left', direction='below', anchor='w'
-                        )
-
-                        self.Channel['menu'].configure(
-                            bg=self.boxc, fg=self.letterc,
-                            activebackground='gray',
-                            activeforeground=self.letterc,
-                            border=0, borderwidth=0
-                        )
-                        self.Channel.pack(
+                        self.comboBox = ttk.Combobox(
+                            self.canvas, textvariable=self.channel_var,
+                            values=self.values, style='Custom.TCombobox',
+                            width=600, state='readonly', font=self.font_base)
+                        self.comboBox.pack(
                             padx=15, after=self.labelChannel,
-                            anchor='w', ipady=9
-                        )
+                            anchor='w', ipady=9)
 
                         # --Update GUI:
                         self.labelError.configure(
@@ -488,7 +505,7 @@ class GUI(tk.Tk):
                                 self.font_base, self.letter_bkg
                             )
                             self.configure_widgets_int(
-                                [self.entryOrig, self.entryDest, self.Channel,
+                                [self.entryOrig, self.entryDest, self.comboBox,
                                  self.buttonUsersYes, self.buttonUsersNo],
                                 'disabled', self.font_base
                             )
@@ -519,7 +536,7 @@ class GUI(tk.Tk):
                                 self.font_base, self.letter_bkg
                             )
                             self.configure_widgets_int(
-                                [self.entryOrig, self.entryDest, self.Channel,
+                                [self.entryOrig, self.entryDest, self.comboBox,
                                  self.buttonChannelsNo, self.buttonChannelsYes
                                  ], 'disabled', self.font_base
                             )
@@ -539,8 +556,10 @@ class GUI(tk.Tk):
                                                   self.channels_flag,
                                                   self.users_flag)
                             self.configure_widgets_int(
-                                [self.Channel],
-                                'normal', self.font_base
+                                [self.entryOrig, self.entryDest, self.comboBox,
+                                 self.buttonChannelsNo, self.buttonChannelsYes,
+                                 self.buttonUsersNo, self.buttonUsersYes
+                                 ], 'disabled', self.font_base
                             )
                             self.labelError.configure(
                                 text='Good! Proceed to convert your file(s).'
@@ -553,7 +572,7 @@ class GUI(tk.Tk):
 
     def setup_inputs(self):
         """ Inspects the directories and creates the inputs.py file """
-        inspect_source = messages.InspectSource(self.inputs, 
+        inspect_source = messages.InspectSource(self.inputs,
                                                 self.settings_messages)
         save_in_path = inspect_source.save_in_path()
         inspect_source.check_save_path_exists(save_in_path)
@@ -571,7 +590,7 @@ class GUI(tk.Tk):
 
         # --Update visual interface label and button:
         self.configure_widgets_int(
-            [self.entryOrig, self.entryDest, self.Channel,
+            [self.entryOrig, self.entryDest, self.comboBox,
              self.buttonChannelsYes, self.buttonChannelsNo,
              self.buttonUsersYes, self.buttonUsersNo],
             'disabled', self.font_base
@@ -593,7 +612,7 @@ class GUI(tk.Tk):
     def execute_analysis(self):
         """ Executes the main functions in the messages module. """
         try:
-            scu = messages.SlackChannelsAndUsers(self.inputs, 
+            scu = messages.SlackChannelsAndUsers(self.inputs,
                                                  self.settings_messages)
             scu.get_all_channels_info()
             scu.get_all_users_info()
@@ -606,7 +625,9 @@ class GUI(tk.Tk):
             full_path = join(self.path_dest, dest_name_ext)
             self.reset_widgets()
             self.configure_widgets_int(
-                [self.Channel], 'normal', self.font_base
+                [self.entryOrig, self.entryDest, self.comboBox,
+                 self.channels_flag, self.users_flag],
+                'disabled', self.font_base
             )
             self.labelError.configure(text='Download completed.')
             self.labelHelp.configure(
