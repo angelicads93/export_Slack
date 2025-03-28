@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Feb 23 10:59:17 2025
-
-@author: agds
+@author: Angelica Goncalves
 """
 import pandas as pd
 import sys
 import os
 import argparse
-import importlib
 
 parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
 import excel
 import clean
+import parser
 
 
 def parse_command_input():
@@ -36,17 +35,17 @@ def parse_command_input():
     return settings_file_path
 
 
-def check_input(compilation_reports_path, excel_channels_path):
+def check_input(file_name, compilation_reports_path, excel_channels_path):
     """ Verify validity of the user's inputs in the settings module. """
-    if os.path.exists(excel_channels_path) is False:
-        print(f"ERROR: Path {excel_channels_path} does not exists." + "\n"
-              + "       Please review your input for the variable "
-              + "'excel_channels_path' in {module_name}.")
-        sys.exit()
     if os.path.exists(compilation_reports_path) is False:
         print(f"ERROR: Path {compilation_reports_path} does not exists." + "\n"
               + "       Please review your input for the variable"
-              + " 'compilation_reports_file_name' in {module_name}.")
+              + " 'compilation_reports_file_name' in {file_name}.")
+        sys.exit()
+    if os.path.exists((excel_channels_path)) is False:
+        print(f"ERROR: Path {excel_channels_path} does not exists." + "\n"
+              + "       Please review your input for the variable "
+              + "'excel_channels_path' in {file_name}.")
         sys.exit()
 
 
@@ -131,22 +130,22 @@ def format_unparsed_reports(df, wr_channel_name):
     return df_np
 
 
-def apply_excel_adjustments(file_path, sheet_name, settings_mod):
+def apply_excel_adjustments(file_path, sheet_name, settings):
     """ Defines the sequence of changes to be done in the Excel file
     given the user's inputs in the module settings_mod.
     """
     xl = excel.ExcelFormat(file_path)
     ws_channel = xl.get_sheet(sheet_name)
 
-    xl.set_cell_width(ws_channel, settings_mod.column_widths)
-    xl.draw_vertical_line(ws_channel, settings_mod.draw_vert_line)
+    xl.set_cell_width(ws_channel, settings.column_widths())
+    xl.draw_vertical_line(ws_channel, settings.draw_vert_line())
     xl.set_allignment(ws_channel, 'top')
-    xl.format_first_row(ws_channel, settings_mod.header_row)
-    for cc in settings_mod.font_color_in_column:
+    xl.format_first_row(ws_channel, settings.header_row())
+    for cc in settings.font_color_in_column():
         xl.set_font_color_in_column(ws_channel, cc)
-    for highlight in settings_mod.highlights:
+    for highlight in settings.highlights():
         xl.format_highlight(ws_channel, highlight)
-    for column in settings_mod.text_type_cols:
+    for column in settings.text_type_cols():
         xl.format_text_cells(ws_channel, column)
 
     xl.set_filters(ws_channel)
@@ -156,29 +155,24 @@ def apply_excel_adjustments(file_path, sheet_name, settings_mod):
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     # --Parse the settings file:
+    print("Checking arguments of Python command")
     settings_file_path = parse_command_input()
 
-    # --Import settings module:
-    parent_path = os.path.dirname(settings_file_path)
-    module_name = os.path.basename(settings_file_path).split(".")[0]
-    sys.path.append(parent_path)
-    settings_module = importlib.import_module(module_name)
-
-    missing_value = settings_module.missing_value
-    excel_channels_path = settings_module.excel_channels_path
-    compilation_reports_file_name = settings_module.compilation_reports_file_name
-    compilation_reports_path = settings_module.compilation_reports_path
-    reports_channel_name = settings_module.reports_channel_name
-    print(f"Module {module_name} imported.")
+    print("Parsing information in settings file")
+    file_name = os.path.basename(settings_file_path)
+    sett_stats = parser.settings_mod(os.path.abspath(settings_file_path))
 
     # --Check the input and retrieve expected name of channels:
-    check_input(compilation_reports_path, excel_channels_path)
-    expected_channels = get_list_channels(settings_module.jsons_source_path)
+    print("Checking validity of input paths")
+    check_input(file_name, 
+                sett_stats.compilation_reports_path(),
+                sett_stats.excel_channels_path())
+    expected_channels = get_list_channels(sett_stats.jsons_source_path())
 
     # --Build dataframe from all the channels:
-    for file in os.listdir(excel_channels_path):
+    for file in os.listdir(sett_stats.excel_channels_path()):
         file_name = str(file).split(".")[0]
-        channel_path = f"{excel_channels_path}/{file}"
+        channel_path = f"{sett_stats.excel_channels_path()}/{file}"
 
         if check_channel(file_name, expected_channels) is True:
             channel_df = pd.read_excel(channel_path, engine='openpyxl',
@@ -190,13 +184,14 @@ if __name__ == '__main__':
                 channel_df = add_info_of_users_reports(channel_df)
 
                 # --Handle missing values:
-                channel_df = clean.handle_missing_values(channel_df, missing_value)
+                channel_df = clean.handle_missing_values(channel_df,
+                                                         sett_stats.missing_value())
 
                 # --Reorder columns:
-                channel_df = channel_df[settings_module.columns_order]
+                channel_df = channel_df[sett_stats.columns_order()]
 
                 # --Concatanate channel_df to final dataframe:
-                if file == os.listdir(excel_channels_path)[0]:
+                if file == os.listdir(sett_stats.excel_channels_path())[0]:
                     df = channel_df.copy()
                 else:
                     df = pd.concat([df, channel_df], axis=0, ignore_index=False)
@@ -209,7 +204,7 @@ if __name__ == '__main__':
     print('Set data type of columns.')
 
     # --Select rows with un-parsed projects in official weekly report channel:
-    df_unparsed = format_unparsed_reports(df, reports_channel_name)
+    df_unparsed = format_unparsed_reports(df, sett_stats.reports_channel_name())
     unparsed_ws_name = "Unparsed weekly reports"
     print('Retrieve un-parsed weekly reports.')
 
@@ -219,15 +214,15 @@ if __name__ == '__main__':
     print('Retrieve parsed weekly reports from all the channels.')
 
     # --Save Excel workbook:
-    path = f"{compilation_reports_path}/{compilation_reports_file_name}"
+    path = f"{sett_stats.compilation_reports_path()}/{sett_stats.compilation_reports_file_name()}"
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
         df_parsed.to_excel(writer, sheet_name=parsed_ws_name, index=False)
         df_unparsed.to_excel(writer, sheet_name=unparsed_ws_name, index=False)
         df.to_excel(writer, sheet_name='All messages', index=False)
 
     # --Apply formatting of Excel worksheets:
-    apply_excel_adjustments(path, parsed_ws_name, settings_module)
-    apply_excel_adjustments(path, unparsed_ws_name, settings_module)
-    apply_excel_adjustments(path, 'All messages', settings_module)
-
+    apply_excel_adjustments(path, parsed_ws_name, sett_stats)
+    apply_excel_adjustments(path, unparsed_ws_name, sett_stats)
+    apply_excel_adjustments(path, 'All messages', sett_stats)
     print('Excel file saved.')
+
