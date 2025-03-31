@@ -80,7 +80,7 @@ class settings_mod:
             except Exception as e:
                 flag = False
                 #print(f'ERROR: {str(e).split("(")[0]}')
-                print(f'ERROR: Please review the definition of the variable "{variables[i].split(' = ')[0]}" in the file "{self.file_name}"')
+                print(f'ERROR: Please review the definition of the variable {name} in the file {self.file_name}')
                 break
 
         if flag is True:
@@ -124,6 +124,18 @@ class settings_mod:
     def compilation_reports_file_name(self):
         if 'compilation_reports_file_name' in self.var_names:
             return self.var_dict['compilation_reports_file_name']
+        else:
+            return None
+        
+    def compilation_urls_file_name(self):
+        if 'compilation_urls_file_name' in self.var_names:
+            return self.var_dict['compilation_urls_file_name']
+        else:
+            return None
+        
+    def urls_to_show(self):
+        if 'urls_to_show' in self.var_names:
+            return self.var_dict['urls_to_show']
         else:
             return None
     

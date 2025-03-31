@@ -1,0 +1,64 @@
+# --Syntax to use for missing values (as a Python string):
+missing_value = 'n/d'
+
+
+# ############################################################################
+# ############################################################################
+# ### DIRECTORIES AND FILE NAMES:
+# ##################################
+#
+# 0. Path where the exported JSON files are (as a Python string):
+jsons_source_path = '/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/'
+#
+# 1. Path where the exported Excel files are (as a Python string):
+excel_channels_path = '/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/_JSONs_converted'
+#
+# 2. Name of the Slack channel dedicated to the weekly reports (as a Python string):
+reports_channel_name = 'think-biver-weekly-checkins'
+#
+#
+urls_to_show = ['docs.google.com', 'figma.com'] 
+#
+# 3. Name of file to be saved with the compilation of messages with URLs (as a Python string):
+compilation_urls_file_name = 'urls_2.xlsx'
+#
+# 4. Path where the file compilation_reports_file_path will be saved (as a Python string):
+compilation_reports_path = '/home/agds/Desktop'
+
+
+
+# ############################################################################
+# ############################################################################
+# ### EXCEL FORMATTING:
+# #####################
+#
+# 0. Set the order of the columns in the Excel table (as a Python list of strings):
+columns_order = ['display_name', 'URL(s)', 'msg_date', 'channel']
+#
+# 1. Change the width of the Excel cells (as Python intege numbers and Python dictionary):
+w_date = 19
+w_name = 19
+w_text = 30
+w_bool = 7
+w_count = 8
+column_widths = {
+    'channel': w_text, 'msg_date': w_date,
+    'display_name': w_name, 'text': w_text, 'URL(s)': w_text
+}
+# -----------------------------------------------------------------------------
+# 2. Set the alignment of cells containing long text (as a Python list of strings):
+text_type_cols = ['B']
+#
+# -----------------------------------------------------------------------------
+# 3. Format the height, color, font alignment and size of the first column (as a Python dictionary):
+header_row = {
+    "height": 43,
+    "alignment_vert": "top",
+    "alignment_horiz": "left",
+    "font_size": 9,
+    "font_bold": True,
+    "cell_color": [
+        # ("color_code", [list the columns' letter])
+        ["e7c9fb", ['A', 'B', 'C', 'D']]
+        ]
+}
