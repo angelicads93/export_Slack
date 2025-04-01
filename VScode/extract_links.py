@@ -124,9 +124,9 @@ def select_desired_urls(df, settings):
 
 def apply_excel_adjustments(file_path, sheet_name, settings):
     """ Defines the sequence of changes to be done in the Excel file
-    given the user's inputs in the module settings_mod.
+    given the user's inputs in the module settings.
     """
-    xl = excel.ExcelFormat(file_path)
+    xl = excel.ExcelFormat(file_path, settings)
     ws_channel = xl.get_sheet(sheet_name)
 
     xl.set_cell_width(ws_channel, settings.get('column_widths'))

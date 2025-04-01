@@ -5,19 +5,18 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter, column_index_from_string
 
-import settings_messages
-
-column_widths = settings_messages.column_widths
-text_type_cols = settings_messages.text_type_cols
-header_row = settings_messages.header_row
-font_color_in_column = settings_messages.font_color_in_column
-highlights = settings_messages.highlights
-
 
 class ExcelFormat():
-    def __init__(self, file_path):
+    def __init__(self, file_path, settings):
         self.file_path = file_path
         self.wb = load_workbook(self.file_path)
+
+        self.settings = settings
+        self.column_widths = self.settings.get('column_widths')
+        self.text_type_cols = self.settings.get('text_type_cols')
+        self.header_row = self.settings.get('header_row')
+        self.font_color_in_column = self.settings.get('font_color_in_column')
+        self.highlights = self.settings.get('highlights')
 
     def get_active_sheet(self):
         ws = self.wb.active

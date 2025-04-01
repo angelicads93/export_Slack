@@ -16,7 +16,7 @@ To use parser.py:
 1. Import the module parser.py in your Python code:
     import parser
 
-2. Initialize an object of the class "settings_mod" given as argument a Python
+2. Initialize an object of the class "settings" given as argument a Python
 string with the absolute path to the txt file you wish to parse:
     inputs_parser = parser.Parser(path_to_txt_file)
 
@@ -49,16 +49,21 @@ class Parser:
         Outputs the list "variables".
         """
         variables = []
+        i = 1
         with open(self.txt_path, 'r') as file:
             for line in file:
                 # Ignore fully commented lines:
-                if line.lstrip(' ')[0] != "#":
+                if line.lstrip(' ')[0] != "#" and line.lstrip(' ')[0] != "\n":
 
                     # Ignore tabs:
                     line = line.lstrip(' ')
 
                     # Ignore in-line comments:
                     line = line.split('#')[0]
+
+                    # Replace "'" with "\'" to avoid syntax errors later when
+                    # using eval():
+                    line = line.replace("'", "\\'")
 
                     # Create a new entry on the list when a new variable is
                     # starting to be defined:
@@ -68,6 +73,7 @@ class Parser:
                     # Add the current line to the corresponding item of the
                     # list "variables":
                     variables[-1] += line.rstrip(' \n')
+                i += 1
 
         return variables
 

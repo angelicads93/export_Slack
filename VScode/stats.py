@@ -132,20 +132,20 @@ def format_unparsed_reports(df, wr_channel_name):
 
 def apply_excel_adjustments(file_path, sheet_name, settings):
     """ Defines the sequence of changes to be done in the Excel file
-    given the user's inputs in the module settings_mod.
+    given the user's inputs in the module "settings".
     """
-    xl = excel.ExcelFormat(file_path)
+    xl = excel.ExcelFormat(file_path, settings)
     ws_channel = xl.get_sheet(sheet_name)
 
-    xl.set_cell_width(ws_channel, settings.column_widths())
-    xl.draw_vertical_line(ws_channel, settings.draw_vert_line())
+    xl.set_cell_width(ws_channel, settings.get('column_widths'))
+    xl.draw_vertical_line(ws_channel, settings.get('draw_vert_line'))
     xl.set_allignment(ws_channel, 'top')
-    xl.format_first_row(ws_channel, settings.header_row())
-    for cc in settings.font_color_in_column():
+    xl.format_first_row(ws_channel, settings.get('header_row'))
+    for cc in settings.get('font_color_in_column'):
         xl.set_font_color_in_column(ws_channel, cc)
-    for highlight in settings.highlights():
+    for highlight in settings.get('highlights'):
         xl.format_highlight(ws_channel, highlight)
-    for column in settings.text_type_cols():
+    for column in settings.get('text_type_cols'):
         xl.format_text_cells(ws_channel, column)
 
     xl.set_filters(ws_channel)
@@ -160,19 +160,19 @@ if __name__ == '__main__':
 
     print("Parsing information in settings file")
     file_name = os.path.basename(settings_file_path)
-    sett_stats = parser.settings_mod(os.path.abspath(settings_file_path))
+    sett_stats = parser.Parser(os.path.abspath(settings_file_path))
 
     # --Check the input and retrieve expected name of channels:
     print("Checking validity of input paths")
     check_input(file_name, 
-                sett_stats.compilation_reports_path(),
-                sett_stats.excel_channels_path())
-    expected_channels = get_list_channels(sett_stats.jsons_source_path())
+                sett_stats.get('compilation_reports_path'),
+                sett_stats.get('excel_channels_path'))
+    expected_channels = get_list_channels(sett_stats.get('jsons_source_path'))
 
     # --Build dataframe from all the channels:
-    for file in os.listdir(sett_stats.excel_channels_path()):
+    for file in os.listdir(sett_stats.get('excel_channels_path')):
         file_name = str(file).split(".")[0]
-        channel_path = f"{sett_stats.excel_channels_path()}/{file}"
+        channel_path = f"{sett_stats.get('excel_channels_path')}/{file}"
 
         if check_channel(file_name, expected_channels) is True:
             channel_df = pd.read_excel(channel_path, engine='openpyxl',
@@ -185,13 +185,13 @@ if __name__ == '__main__':
 
                 # --Handle missing values:
                 channel_df = clean.handle_missing_values(channel_df,
-                                                         sett_stats.missing_value())
+                                                         sett_stats.get('missing_value'))
 
                 # --Reorder columns:
-                channel_df = channel_df[sett_stats.columns_order()]
+                channel_df = channel_df[sett_stats.get('columns_order')]
 
                 # --Concatanate channel_df to final dataframe:
-                if file == os.listdir(sett_stats.excel_channels_path())[0]:
+                if file == os.listdir(sett_stats.get('excel_channels_path'))[0]:
                     df = channel_df.copy()
                 else:
                     df = pd.concat([df, channel_df], axis=0, ignore_index=False)
@@ -204,7 +204,7 @@ if __name__ == '__main__':
     print('Set data type of columns.')
 
     # --Select rows with un-parsed projects in official weekly report channel:
-    df_unparsed = format_unparsed_reports(df, sett_stats.reports_channel_name())
+    df_unparsed = format_unparsed_reports(df, sett_stats.get('reports_channel_name'))
     unparsed_ws_name = "Unparsed weekly reports"
     print('Retrieve un-parsed weekly reports.')
 
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     print('Retrieve parsed weekly reports from all the channels.')
 
     # --Save Excel workbook:
-    path = f"{sett_stats.compilation_reports_path()}/{sett_stats.compilation_reports_file_name()}"
+    path = f"{sett_stats.get('compilation_reports_path')}/{sett_stats.get('compilation_reports_file_name')}"
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
         df_parsed.to_excel(writer, sheet_name=parsed_ws_name, index=False)
         df_unparsed.to_excel(writer, sheet_name=unparsed_ws_name, index=False)

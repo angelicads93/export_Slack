@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # --Syntax to use for missing values:
-missing_value = 'n/d'
+missing_value = "n/d"
 
 # --Specify time-zone region to express the date:
-timezone = 'US/Central'
+timezone = "US/Central"
 
 
 # ############################################################################
@@ -14,21 +14,21 @@ timezone = 'US/Central'
 # ##################################
 #
 # 1. Name of JSON file with the channels information in the source directory:
-channels_json_name = 'channels.json'
+channels_json_name = "channels.json"
 #
 # -----------------------------------------------------------------------------
 # 2. Name of JSON file with the users information in the source directory:
-users_json_name = 'users.json'
+users_json_name = "users.json"
 #
 # -----------------------------------------------------------------------------
 # 3. Name extension to the destination folder:
-dest_name_ext = '_JSONs_converted'
+dest_name_ext = "_JSONs_converted"
 #
 # 4. Name of Excel workbook where the channel's information will be saved:
-channels_excel_name = '_all_channels.xlsx'
+channels_excel_name = "_all_channels.xlsx"
 #
 # 5. Name of Excel workbook where the user's information will be saved:
-users_excel_name = '_all_users.xlsx'
+users_excel_name = "_all_users.xlsx"
 
 # ############################################################################
 # ############################################################################
@@ -37,48 +37,48 @@ users_excel_name = '_all_users.xlsx'
 #
 # 1. List of keywords to look for in each check-in message:
 # (It is assumend that the text follows the convention "keyword : ")
-all_keywords = ['project_name', 'working_on', 'progress_and_roadblocks',
-                'progress', 'roadblocks', 'plans_for_following_week',
-                'meetings']
+all_keywords = ["project_name", "working_on", "progress_and_roadblocks",
+                "progress", "roadblocks", "plans_for_following_week",
+                "meetings"]
 #
 # -----------------------------------------------------------------------------
 # 2. Which keyword do you want to use as trigger for distinguishing different
 # projects?
 # NOTE: currently chosing project_name since its use is more consistent than
-# 'weekly report:'
-index_keyword = 'project_name'
+# "weekly report:"
+index_keyword = "project_name"
 #
 # -----------------------------------------------------------------------------
 # 3. To maximize the parsing of messages, enter words/phrases that users are
 # likely to use as keywords in their check-in messages.
 # Enter your inputs in the form of a Python dictionary as shown bellow:
 keywords_dictionary = {
-    # 'keyword': ['keyword/phrase 1', ..., 'keyword/phrase n'],
-    'header':
-        ['weekly report', 'report', "week's report"],
-    'project_name':
-        ['project name', 'Current Project Name', 'project'],
-    'working_on':
-        ['working on', 'working', 'worked on', "What I'm working on",
-         'What you are working', 'what you are working on',
-         'current task', 'current_tasks', 'task', 'current focus'],
-    'progress_and_roadblocks':
-        ['progress and roadblocks', 'progress and roadblock',
-        'progress &amp; roadblocks', 'Progress/Roadblocks',
-        'progress and challenges'],
-    'progress':
-        ['progress'],
-    'roadblocks':
-        ['roadblocks', 'roadblock', 'challenges'],
-    'plans_for_following_week':
-        ['plans for the following week', 'plans for next week',
-         'Plans for the next week', 'following week', 'next week',
-         'plans for the upcoming week', 'Plans for the weeks',
-         'upcoming plans', 'Plans For Following Week',
-         'Plans for upcoming week', 'plan for next week'],
-    'meetings':
-        ['meetings', 'meet', 'met', "meetings you've attended",
-        'upcoming meetings', 'meeting', 'Meeting attended', 'Meetings attended']
+    # "keyword": ["keyword/phrase 1", ..., "keyword/phrase n"],
+    "header":
+        ["weekly report", "report", "week's report"],
+    "project_name":
+        ["project name", "Current Project Name", "project"],
+    "working_on":
+        ["working on", "working", "worked on", "What I'm working on",
+         "What you are working", "what you are working on",
+         "current task", "current_tasks", "task", "current focus"],
+    "progress_and_roadblocks":
+        ["progress and roadblocks", "progress and roadblock",
+        "progress &amp; roadblocks", "Progress/Roadblocks",
+        "progress and challenges"],
+    "progress":
+        ["progress"],
+    "roadblocks":
+        ["roadblocks", "roadblock", "challenges"],
+    "plans_for_following_week":
+        ["plans for the following week", "plans for next week",
+         "Plans for the next week", "following week", "next week",
+         "plans for the upcoming week", "Plans for the weeks",
+         "upcoming plans", "Plans For Following Week",
+         "Plans for upcoming week", "plan for next week"],
+    "meetings":
+        ["meetings", "meet", "met", "meetings you've attended",
+        "upcoming meetings", "meeting", "Meeting attended", "Meetings attended"]
 }
 # -----------------------------------------------------------------------------
 # 4. Some of the checkin messages are sent to the Slack channel as a sample on
@@ -100,13 +100,13 @@ sample_text_list = [
 # #####################
 #
 # 0. Set the order of the columns in the Excel table:
-columns_order = ['msg_id', 'msg_date', 'user', 'name', 'display_name',
-                 'deactivated', 'is_bot', 'type', 'text', 'contained_emoji',
-                 'reply_count', 'reply_users_count', 'latest_reply_date',
-                 'thread_date', 'parent_user_name', 'URL(s)',
-                 'projects_parsed', 'keywords_parsed', 'project_name',
-                 'working_on', 'progress_and_roadblocks', 'progress',
-                 'roadblocks', 'plans_for_following_week', 'meetings']
+columns_order = ["msg_id", "msg_date", "user", "name", "display_name",
+                 "deactivated", "is_bot", "type", "text", "contained_emoji",
+                 "reply_count", "reply_users_count", "latest_reply_date",
+                 "thread_date", "parent_user_name", "URL(s)",
+                 "projects_parsed", "keywords_parsed", "project_name",
+                 "working_on", "progress_and_roadblocks", "progress",
+                 "roadblocks", "plans_for_following_week", "meetings"]
 #
 # 1. Change the width of the Excel cells:
 w_date = 19
@@ -115,20 +115,20 @@ w_text = 30
 w_bool = 7
 w_count = 8
 column_widths = {
-    'msg_id': 12, 'msg_date': w_date, 'user': 15, 'name': w_name,
-    'display_name': w_name, 'deactivated': w_bool, 'is_bot': w_bool,
-    'type': 8, 'text': w_text, 'contained_emoji': w_bool, 'reply_count': w_count,
-    'reply_users_count': w_count, 'latest_reply_date': w_date,
-    'thread_date': w_date, 'parent_user_name': w_name,
-    'URL(s)': w_text, 'projects_parsed': w_count, 'keywords_parsed': w_count,
-    'project_name': w_text, 'working_on': w_text,
-    'progress_and_roadblocks': w_text, 'progress': w_text,
-    'roadblocks': w_text, 'plans_for_following_week': w_text,
-    'meetings': w_text
+    "msg_id": 12, "msg_date": w_date, "user": 15, "name": w_name,
+    "display_name": w_name, "deactivated": w_bool, "is_bot": w_bool,
+    "type": 8, "text": w_text, "contained_emoji": w_bool, "reply_count": w_count,
+    "reply_users_count": w_count, "latest_reply_date": w_date,
+    "thread_date": w_date, "parent_user_name": w_name,
+    "URL(s)": w_text, "projects_parsed": w_count, "keywords_parsed": w_count,
+    "project_name": w_text, "working_on": w_text,
+    "progress_and_roadblocks": w_text, "progress": w_text,
+    "roadblocks": w_text, "plans_for_following_week": w_text,
+    "meetings": w_text
 }
 # -----------------------------------------------------------------------------
 # 2. Set the alignment of cells containing long text:
-text_type_cols = ['I', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+text_type_cols = ["I", "S", "T", "U", "V", "W", "X", "Y"]
 #
 # -----------------------------------------------------------------------------
 # 3. Format the height, color, font alignment and size of the first column:
@@ -139,15 +139,15 @@ header_row = {
     "font_size": 9,
     "font_bold": True,
     "cell_color": [
-        # ("color_code", [list the columns' letter])
-        ("e7c9fb", ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']),
-        ("CDB5B7", ['Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'])
+        # ("color_code", [list the columns" letter])
+        ("e7c9fb", ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]),
+        ("CDB5B7", ["Q", "R", "S", "T", "U", "V", "W", "X", "Y"])
         ]
 }
 # -----------------------------------------------------------------------------
 # 4. Distinguish special columns by changing the color of their font:
 font_color_in_column = [
-    # ["color_code', 'column_letter']
+    # ["color_code", "column_letter"]
     ("0707C5", "I"),  # "text" to blue
     ("c10105", "O"),  # "parent_user_name" to red
     ("c10105", "E")   # "display_name" to red

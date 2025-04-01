@@ -5,38 +5,48 @@ import os
 import sys
 import argparse
 
+# Include the main repo directory (export_Slack/) and the src directory
+# (export_Slack/src) to the Python path so the customed modules can be imported
 parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
 import messages
+import parser
 
 if __name__ == "__main__":
 
     # --Define argument parser routine:
-    parser = argparse.ArgumentParser(
-        description="Python script to convert a Slack workspace into Excel databases"
+    arg_parser = argparse.ArgumentParser(
+        description="Python script to convert a Slack workspace into "
+        + "Excel databases"
         )
-    parser.add_argument("--inputs_file_path", required=True, type=str)
-    parser.add_argument("--settings_file_path", required=True, type=str)
-    args = parser.parse_args()
+    arg_parser.add_argument("--inputs_file_path", required=True, type=str)
+    arg_parser.add_argument("--settings_file_path", required=True, type=str)
+    args = arg_parser.parse_args()
 
-    inputs_file_path = args.inputs_file_path
-    inputs = os.path.basename(inputs_file_path).split(".")[0]
+
+    inputs_file_path = os.path.abspath(args.inputs_file_path)
     print(f"inputs_file_path = {inputs_file_path}")
+    # --Verify that input_file_path exists:
     if os.path.exists(inputs_file_path) is False:
         print(f"ERROR: Path {inputs_file_path} does not exists." + "/n"
               + "       Please review your input for the argument "
               + "--inputs_file_path.")
         sys.exit()
+    # --Parse the information in input_file_path:
+    inputs = parser.Parser(inputs_file_path)
 
-    settings_file_path = args.settings_file_path
-    settings_messages = os.path.basename(settings_file_path).split(".")[0]
+    settings_file_path = os.path.abspath(args.settings_file_path)
     print(f"settings_file_path = {settings_file_path}")
+    # --Verify that settings_file_path exists:
     if os.path.exists(settings_file_path) is False:
         print(f"ERROR: Path {settings_file_path} does not exists." + "/n"
               + "       Please review your input for the argument"
               + "--settings_file_path.")
         sys.exit()
+    # --Parse the information in settings_file_path:
+    settings_messages = parser.Parser(settings_file_path)
+
 
     # --Initialize constructor of the class InspectSource:
     inspect_source = messages.InspectSource(inputs, settings_messages)

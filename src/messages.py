@@ -25,15 +25,15 @@ if parent_dir not in sys.path:
 class InspectSource:
     def __init__(self, inputs, settings_messages):
 
-        self.inputs = importlib.import_module(inputs)
-        self.chosen_channel_name = self.inputs.chosen_channel_name
-        self.slackexport_folder_path = self.inputs.slackexport_folder_path
-        self.converted_directory = self.inputs.converted_directory
+        self.inputs = inputs
+        self.chosen_channel_name = self.inputs.get('chosen_channel_name')
+        self.slackexport_folder_path = self.inputs.get('slackexport_folder_path')
+        self.converted_directory = self.inputs.get('converted_directory')
 
-        self.settings_messages = importlib.import_module(settings_messages)
-        self.dest_name_ext = self.settings_messages.dest_name_ext
-        self.channels_json_name = self.settings_messages.channels_json_name
-        self.users_json_name = self.settings_messages.users_json_name
+        self.settings_messages = settings_messages
+        self.dest_name_ext = self.settings_messages.get('dest_name_ext')
+        self.channels_json_name = self.settings_messages.get('channels_json_name')
+        self.users_json_name = self.settings_messages.get('users_json_name')
 
     def set_flag_analyze_all_channels(self):
         """ Sets a flag to keep track if one or all the channels are going to
@@ -197,22 +197,22 @@ class InspectSource:
 class SlackChannelsAndUsers:
     def __init__(self,  inputs, settings_messages):
 
-        self.inputs = importlib.import_module(inputs)
-        self.write_all_channels_info = self.inputs.write_all_channels_info
-        self.write_all_users_info = self.inputs.write_all_users_info
-        self.slackexport_folder_path = self.inputs.slackexport_folder_path
-        self.converted_directory = self.inputs.converted_directory
+        self.inputs = inputs
+        self.write_all_channels_info = self.inputs.get('write_all_channels_info')
+        self.write_all_users_info = self.inputs.get('write_all_users_info')
+        self.slackexport_folder_path = self.inputs.get('slackexport_folder_path')
+        self.converted_directory = self.inputs.get('converted_directory')
 
-        self.settings_messages = importlib.import_module(settings_messages)
-        self.missing_value = self.settings_messages.missing_value
-        self.timezone = self.settings_messages.timezone
-        self.dest_name_ext = self.settings_messages.dest_name_ext
-        self.channels_json_name = self.settings_messages.channels_json_name
-        self.users_json_name = self.settings_messages.users_json_name
-        self.channels_excel_name = self.settings_messages.channels_excel_name
-        self.users_excel_name = self.settings_messages.users_excel_name
+        self.settings_messages = settings_messages
+        self.missing_value = self.settings_messages.get('missing_value')
+        self.timezone = self.settings_messages.get('timezone')
+        self.dest_name_ext = self.settings_messages.get('dest_name_ext')
+        self.channels_json_name = self.settings_messages.get('channels_json_name')
+        self.users_json_name = self.settings_messages.get('users_json_name')
+        self.channels_excel_name = self.settings_messages.get('channels_excel_name')
+        self.users_excel_name = self.settings_messages.get('users_excel_name')
 
-        self.inspect_source = InspectSource("inputs", "settings_messages")
+        self.inspect_source = InspectSource(self.inputs, self.settings_messages)
         self.save_path = self.inspect_source.save_in_path()
         self.continue_analysis = True
 
@@ -336,20 +336,20 @@ class SlackChannelsAndUsers:
 class SlackMessages:
     def __init__(self, inputs, settings_messages):
 
-        self.inputs = importlib.import_module(inputs)
-        self.slackexport_folder_path = self.inputs.slackexport_folder_path
+        self.inputs = inputs
+        self.slackexport_folder_path = self.inputs.get('slackexport_folder_path')
 
-        self.settings_messages = importlib.import_module(settings_messages)
-        self.missing_value = self.settings_messages.missing_value
-        self.timezone = self.settings_messages.timezone
+        self.settings_messages = settings_messages
+        self.missing_value = self.settings_messages.get('missing_value')
+        self.timezone = self.settings_messages.get('timezone')
 
-        self.inspect_source = InspectSource("inputs", "settings_messages")
+        self.inspect_source = InspectSource(self.inputs, self.settings_messages)
         self.channels_names = self.inspect_source.get_channels_names()
         self.all_channels_jsonFiles_dates = self.inspect_source.get_all_channels_json_names()
         self.save_path = self.inspect_source.save_in_path()
 
         self.slack_channels_users = SlackChannelsAndUsers(
-            "inputs", "settings_messages")
+            self.inputs, self.settings_messages)
         self.all_users_df = self.slack_channels_users.get_all_users_info()
         self.continue_analysis = self.slack_channels_users.continue_analysis
 
@@ -692,20 +692,20 @@ class SlackMessages:
         df_.drop(indices2drop, inplace=True)
         return clean.reset_indices(df_)
 
-    def apply_excel_adjustments(self, file_path, ws_name, settings_mod):
+    def apply_excel_adjustments(self, file_path, ws_name, settings):
         """ Defines the sequence of changes to be done in the Excel file
-        given the user's inputs in the module settings_mod.
+        given the user's inputs in the module settings.
         """
-        xl = excel.ExcelFormat(file_path)
+        xl = excel.ExcelFormat(file_path, settings)
         ws = xl.get_sheet(ws_name)
-        xl.set_cell_width(ws, settings_mod.column_widths)
+        xl.set_cell_width(ws, settings.get('column_widths'))
         xl.set_allignment(ws, 'top')
-        xl.format_first_row(ws, settings_mod.header_row)
-        for cc in settings_mod.font_color_in_column:
+        xl.format_first_row(ws, settings.get('header_row'))
+        for cc in settings.get('font_color_in_column'):
             xl.set_font_color_in_column(ws, cc)
-        for highlight in settings_mod.highlights:
+        for highlight in settings.get('highlights'):
             xl.format_highlight(ws, highlight)
-        for column in settings_mod.text_type_cols:
+        for column in settings.get('text_type_cols'):
             xl.format_text_cells(ws, column)
         xl.save_changes()
 
@@ -782,8 +782,8 @@ class SlackMessages:
                 print(f'{curr_ch_name} Checked for emojis in messages')
 
                 # --Parse for check-in messages:
-                ch_msgs_df = checkins.parse_nrows(ch_msgs_df,
-                                                  self.missing_value)
+                ci = checkins.CheckIns(self.settings_messages)
+                ch_msgs_df = ci.parse_nrows(ch_msgs_df)
                 ch_msgs_df = self.drop_extra_unparsed_rows(ch_msgs_df)
                 print(f'{curr_ch_name} Parsed check-in messages')
 
@@ -803,7 +803,7 @@ class SlackMessages:
                 print(f'{curr_ch_name} Built df with filtered-out messages')
 
                 # --Rearrange columns:
-                column_names_order = self.settings_messages.columns_order
+                column_names_order = self.settings_messages.get('columns_order')
                 ch_msgs_df = ch_msgs_df[column_names_order]
                 sel_msgs_df = sel_msgs_df[column_names_order]
                 dis_msgs = dis_msgs[column_names_order]
