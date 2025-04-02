@@ -1,25 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+@author: Angelica Goncalves.
 
+Module to extract info from JSON files to curated dataframes and Excel files.
+
+Classes
+-------
+InspectSource
+
+SlackChannelsAndUsers
+
+SlackMessages
+
+"""
+
+# Import standard Python libraries:
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir, getcwd
-from os.path import getmtime, exists, isdir, dirname
+from os import listdir
+from os.path import getmtime, exists, isdir
 from pathlib import Path
-import sys
-import importlib
 import shutil
 from urlextract import URLExtract
 import re
 
+# Import customed Python modules:
 import excel
 import clean
 import checkins
-
-parent_dir = dirname(getcwd())
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
 
 class InspectSource:
@@ -42,45 +52,40 @@ class InspectSource:
     Methods
     -------
     update_cont_analysis(value)
-        Updates the value of the variable 'continue_analysis'.
+        Update the value of the variable 'continue_analysis'.
 
     get_cont_analysis()
         Retrieve the value of the variable 'continue_analysis'.
 
     set_flag_analyze_all_chs()
-        Returns a boolean specifying if all the Slack channels must be analyzed
+        Return a boolean specifying if all the Slack channels must be analyzed
 
     check_src_path_exists()
-        Checks that the path to the source data exists.
+        Checksthat the path to the source data exists.
 
     check_channels_json_exists()
-        Checks if the JSON files with the channels' information exist.
+        Check if the JSON files with the channels' information exist.
 
     check_users_json_exists()
-        Checks if the JSON files with the user's information exist.
+        Check if the JSON files with the user's information exist.
 
     get_dest_path()
-        Returns the absolute path of the directory where future files will be
-    saved.
+        Return the absolute path of the destination directory.
 
     make_dest_path()
-        Creates the path where all the files will be saved.
+        Create the path where all the files will be saved.
 
     get_chs_dir()
-        Returns list with name(s) of the Slack channel(s) to be converted and
-        have a valid subdirectory in the source directory.
+        Return list with name(s) of the Slack channel(s) to be converted.
 
     check_missing_chs()
-        Returns a list with the name of the channels that are expected but not
-        present in the source directory.
+        Return a list with the name of the channels that are absent.
 
     get_jsons_in_ch(list_names)
-        Returns a list with the names of the JSON files (for a given Slack
-        channel) that have the correct format 'yyyy-mm-dd.json'.
+        Return a list with the names of a channels JSON files.
 
     get_jsons_in_all_chs()
-        Returns a list with the names of the JSON files in all the channels
-        to be converted that have the correct format 'yyyy-mm-dd.json'.
+        Return a list with the names of the JSON files of all the channels.
 
     """
 
@@ -110,10 +115,10 @@ class InspectSource:
 
     def update_cont_analysis(self, value):
         """
-        Updates the value of the variable 'continue_analysis'.
+        Update the value of the variable 'continue_analysis'.
 
-        Parameters
-        ----------
+        Arguments
+        ---------
         value : bool
             Boolean value (True/False).
 
@@ -121,12 +126,12 @@ class InspectSource:
         self.continue_analysis = value
 
     def get_cont_analysis(self):
-        """ Retrieve the value of the variable 'continue_analysis'. """
+        """Retrieve the value of the variable 'continue_analysis'."""
         return self.continue_analysis
 
     def set_flag_analyze_all_chs(self):
         """
-        Returns a boolean specifying if all the Slack channels must be analyzed
+        Return a boolean specifying if all the Slack channels must be analyzed.
 
         The input variable "chosen_channel_name" is expected to be an empty
         string "" if all the Slack channels must be analyzed. Otherwise,
@@ -143,13 +148,13 @@ class InspectSource:
         return analyze_all_channels
 
     def check_src_path_exists(self):
-        """ Verifies that the path to the source data exists. """
+        """Verify that the path to the source data exists."""
         if exists(self.slackexport_folder_path) is False:
             print('Please enter a valid path to the source directory')
             self.update_cont_analysis(False)
 
     def check_channels_json_exists(self):
-        """ Checks if the JSON files with the channels information exist. """
+        """Check if the JSON files with the channels information exist."""
         if exists(
             f"{self.slackexport_folder_path}/{self.channels_json_name}"
         ) is False:
@@ -158,7 +163,7 @@ class InspectSource:
             self.update_cont_analysis(False)
 
     def check_users_json_exists(self):
-        """ Checks if the JSON files with the channels information exist. """
+        """Check if the JSON files with the channels information exist."""
         if exists(
             f"{self.slackexport_folder_path}/{self.users_json_name}"
         ) is False:
@@ -167,15 +172,12 @@ class InspectSource:
             self.update_cont_analysis(False)
 
     def get_dest_path(self):
-        """
-        Returns the absolute path of the directory where future files will be
-        saved.
-        """
+        """Return the absolute path of the destination directory."""
         return f"{self.converted_directory}/{self.dest_name_ext}"
 
     def make_dest_path(self):
         """
-        Creates the path where all the files will be saved.
+        Create the path where all the files will be saved.
 
         If the path already exists, it deletes it and creates a fresh one.
 
@@ -196,8 +198,7 @@ class InspectSource:
 
     def get_chs_dir(self):
         """
-        Returns list with name(s) of the Slack channel(s) to be converted and
-        have a valid subdirectory in the source directory.
+        Return list with name(s) of the Slack channel(s) to be converted.
 
         If analysing one channel, checks that its directory exists, and default
         to the 0-th element of channels_names:
@@ -227,11 +228,7 @@ class InspectSource:
         return chs_names
 
     def check_missing_chs(self):
-        """
-        Returns a list with the name of the channels that are expected but not
-        present in the source directory.
-
-        """
+        """Return a list with the name of the channels that are absent."""
         # Get names of channels in channels.json:
         expected_chs_names = pd.read_json(
             f"{self.slackexport_folder_path}/{self.channels_json_name}"
@@ -253,11 +250,10 @@ class InspectSource:
 
     def get_jsons_in_ch(self, ch_files):
         """
-        Returns a list with the names of the JSON files (for a given Slack
-        channel) that have the correct format 'yyyy-mm-dd.json'
+        Return a list with the names of a channels JSON files.
 
-        Parameters
-        ----------
+        Arguments
+        ---------
         ch_files : list
             List with the name of all the files inside the directory of a given
             Slack channel.
@@ -274,8 +270,9 @@ class InspectSource:
 
     def get_jsons_in_all_chs(self):
         """
-        Returns a list with the names of the JSON files for all the channels
-        to be converted.
+        Return a list with the names of the JSON files of all the channels.
+
+        The name of the JSON files should the correct format 'yyyy-mm-dd.json'.
 
         all_channels_jsonFiles_dates = [
             [chosen_channel_name_json0, chosen_channel_name_json1, ...]
@@ -293,11 +290,9 @@ class InspectSource:
         return all_channels_jsonFiles_dates
 
 
-
 class SlackChannelsAndUsers:
     """
-    Class to extract the information from the "channels" and
-    "users" JSON files and format it into curated Excel files.
+    Class to handle information on the Slack channels and users.
 
     Relevant features are added and formatted into "channels" and "users"
     Pandas dataframes, which are later used to complement the information on
@@ -320,13 +315,13 @@ class SlackChannelsAndUsers:
     Methods
     -------
     write_info_to_file(flag=None, df=None, filename=None, path=None)
-        Writes a given Pandas dataframe into an Excel file
+        Write a given Pandas dataframe into an Excel file
 
     get_all_channels_info()
-        Generates a curated Pandas dataframe from the "channels" JSON file.
+        Generate a curated Pandas dataframe from the "channels" JSON file.
 
     get_all_users_info()
-        Generates a curated Pandas dataframe from the "users" JSON file.
+        Generate a curated Pandas dataframe from the "users" JSON file.
 
     """
 
@@ -352,13 +347,12 @@ class SlackChannelsAndUsers:
         # Create an instance of the class InspectSource:
         self.inspect_source = InspectSource(self.inputs, self.settings)
 
-
     def write_info_to_file(self, flag, df, filename, path):
         """
-        Writes a given dataframe to an Excel file.
+        Write a given dataframe to an Excel file.
 
-        Parameters
-        ----------
+        Arguments
+        ---------
         flag : bool
             Boolean specifying if proceeding with writing the Excel file.
         df : pandas.df()
@@ -375,7 +369,7 @@ class SlackChannelsAndUsers:
 
     def get_all_channels_info(self):
         """
-        Exports the channel's JSON file into a curated Pandas dataframe.
+        Export the channel's JSON file into a curated Pandas dataframe.
 
         The primary features of the dataframe are: id, name, created, creator,
             is_archived, is_general, members, pins, topic, purpose.
@@ -418,7 +412,7 @@ class SlackChannelsAndUsers:
 
     def get_all_users_info(self):
         """
-        Exports the user's JSON file into a curated Pandas dataframe.
+        Export the user's JSON file into a curated Pandas dataframe.
 
         The primary features of usrs_df are: id, team_id, name, deleted, color,
             real_name, tz, tz_label, tz_offset, profile, is_admin, is_owner,
@@ -461,8 +455,7 @@ class SlackChannelsAndUsers:
 
 class SlackMessages:
     """
-    Class to extract the Slack messages from JSON files into curated Excel
-    files.
+    Class to handle information on the Slack messages.
 
     ...
 
@@ -480,104 +473,98 @@ class SlackMessages:
     Methods
     -------
     msg_json_to_df(slack_json)
-        Extracts messages on a channel's JSON file to a curated Pandas dataframe.
+        Extract messages from a JSON file to a curated Pandas dataframe.
 
     get_ch_msgs_df(self, src_path, ch_name, json_list)
-        Returns a Pandas dataframe with all the messages of a given Slack
-        channel.
+        Return a Pandas dataframe with all the messages of a given channel.
 
     get_ch_usrs_df(df_msgs, df_usrs)
-        Returns a data frame with the information of the users in the given
-        Slack channel.
+        Return a data frame with the users info in the given Slack channel.
 
     add_usrs_info_to_msgs_df(df_msgs, df_usrs)
-        Adds information of the Slack users into the messages dataframe.
+        Add information on the Slack users into the messages dataframe.
 
     ts_to_tz(df, orig_col_name, new_col_name)
-        Transforms timestamps to dates in a given column of a Pandas dataframe.
+        Transform timestamps to dates in a given column of a Pandas dataframe.
 
     extract_urls(df)
-        Extracts all the URLs found in the messages and stores them in a new
-        columns of the Pandas dataframe.
+        Extract all the URLs found in the messages.
 
     usr_id_to_name(df_msgs, df_usrs)
         Replaces user_id with the user's display_name when mentioned in a msg.
 
     parent_id_to_name(df_msgs, df_usrs)
-        Replaces the parent_user_id to the parent_user's display_name
+        Replace the parent_user_id to the parent_user's display_name.
 
     ch_id_to_name(df_msgs)
-        Replaces the channel_id to the channel's name when mentioned in a msg.
+        Replaces the ch_id with the channel's name when mentioned in a msg.
 
     drop_extra_unparsed_rows(df_msgs)
         Drop extra rows of df_msgs created from misparsed messages.
 
     id_automatic_msgs(df_msgs)
-        Returns a list with the indices of the messages sent automatically.
+        Return a list with the indices of the messages sent automatically.
 
     get_automatic_msgs(df_msgs)
-        Returns a dataframe with the automatic messages identified through
-        id_automatic_msgs.
+        Return a dataframe with automatic messages.
 
     rm_automatic_msgs(df_msgs)
-        Returns a dataframe without the automatic messages identified
-        through id_automatic_msgs.
+        Return a dataframe without automatic messages.
 
     id_emojis_in_text(df_msgs)
-        Returns a dataframe with an additional column "contained_emoji",
-        indicating if the message had any emoji on the first place.
+        Return a dataframe indicating if msg message had emoji(s).
 
     remove_emojis_in_text(df_msgs)
-        Returns a dataframe where the emojis in "text" has been removed.
+        Return a dataframe where the emojis in "text" have been removed.
 
     id_short_msgs(df_msgs, n_char)
-        Returns a list of indices of messages that contain less characters than
-        specified.
+        Return a list of indices of msgs with fewer characters than specified.
 
     get_short_msgs(df_msgs, n_char)
-        Returns a dataframe including only the short messages identified with
-        id_short_messages.
+        Return a dataframe including only short messages.
 
     rm_short_msgs(df_msgs, n_char)
-        Returns a dataframe without the short messages indentified with
-        id_short_messages.
+        Return a dataframe without short messages.
 
     apply_excel_adjustments(file_path, ws_name, settings):
         Formats the Excel tables as specified in the settings txt file.
-        
+
     get_all_messages_df
-        Writes Excel files from curated dataframes containing all the messages
-        in the chosen Slack channel(s).
+        Write Excel files from curated dataframes containing all Slack msgs.
 
     """
 
-    def __init__(self, inputs, settings_messages):
+    def __init__(self, inputs, settings):
 
+        # Retrieve users inputs from inputs.txt:
         self.inputs = inputs
         self.slackexport_folder_path = self.inputs.get("slackexport_folder_path")
 
-        self.settings_messages = settings_messages
-        self.missing_value = self.settings_messages.get("missing_value")
-        self.timezone = self.settings_messages.get("timezone")
+        # Retrieve users inputs from settings.txt:
+        self.settings = settings
+        self.missing_value = self.settings.get("missing_value")
+        self.timezone = self.settings.get("timezone")
 
+        # Create an instance of the class InspectSource:
         self.inspect_source = InspectSource(
-            self.inputs, self.settings_messages)
+            self.inputs, self.settings)
         self.channels_names = self.inspect_source.present_chs
         self.all_channels_jsonFiles_dates = self.inspect_source.chs_jsons
         self.save_path = self.inspect_source.dest_path
 
+        # Create an instance of the class SlackChannelsAndUsers:
         self.slack_channels_users = SlackChannelsAndUsers(
-            self.inputs, self.settings_messages)
+            self.inputs, self.settings)
         self.usrs_df = self.slack_channels_users.get_all_users_info()
 
     def msg_json_to_df(self, slack_json):
         """
-        Extracts messages on a channel's JSON file to a curated Pandas dataframe.
+        Extract messages from a JSON file to a curated Pandas dataframe.
 
         Arguments
         ---------
         slack_json : dict
-            Dictionary contanining the data from the JSON file.
+            Dictionary containing the data from the JSON file.
 
         """
         # Initialize empty dataframe with given columns:
@@ -629,8 +616,7 @@ class SlackMessages:
 
     def get_ch_msgs_df(self, src_path, ch_name, json_list):
         """
-        Returns a Pandas dataframe with all the messages of a given Slack
-        channel.
+        Return a Pandas dataframe with all the messages of a given channel.
 
         Arguments
         ---------
@@ -676,8 +662,7 @@ class SlackMessages:
 
     def get_ch_usrs_df(self, df_msgs, df_usrs):
         """
-        Returns a data frame with the information of the users in the given
-        Slack channel.
+        Return a data frame with the users info in the given Slack channel.
 
         Arguments
         ---------
@@ -686,21 +671,21 @@ class SlackMessages:
         df_usrs : Pandas dataframe
 
         """
-        # --Initialize channel_df_usrs as a copy of df_usrs:
+        # Initialize channel_df_usrs as a copy of df_usrs:
         df = df_usrs.copy()
-        # --Find the unique set of users in channel:
+        # Find the unique set of users in channel:
         channel_users_list = df_msgs["user"].unique()
-        # --Collect the indices of the users that are NOT in the channel:
+        # Collect the indices of the users that are NOT in the channel:
         indices_to_drop = [i
                            for i in range(len(df_usrs))
                            if df_usrs.at[i, "id"] not in channel_users_list]
-        # --Drop the rows on indices_to_drop:
+        # Drop the rows on indices_to_drop:
         df.drop(df.index[indices_to_drop], inplace=True)
         return df
 
     def add_usrs_info_to_msgs_df(self, df_msgs, df_usrs):
         """
-        Adds information of the Slack users into the messages dataframe.
+        Add information of the Slack users into the messages dataframe.
 
         Uses the user's id in the format U1234567789 from the df_msgs to
         find the name, display name and if the user is a bot from df_usrs.
@@ -739,7 +724,7 @@ class SlackMessages:
 
     def ts_to_tz(self, df, orig_col_name, new_col_name):
         """
-        Transforms timestamps to dates in a given column of a Pandas dataframe.
+        Transform timestamps to dates in a given column of a Pandas dataframe.
 
         Changes the name of the column.
 
@@ -784,8 +769,7 @@ class SlackMessages:
 
     def extract_urls(self, df):
         """
-        Extracts all the URLs found in the messages and stores them in a new
-        columns of the Pandas dataframe.
+        Extract all the URLs found in the messages.
 
         Arguments
         ---------
@@ -808,7 +792,7 @@ class SlackMessages:
 
     def usr_id_to_name(self, df_msgs, df_usrs):
         """
-        Replaces user_id with the user's display_name when mentioned in a msg.
+        Replace user_id with the user's display_name when mentioned in a msg.
 
         If there is no display_name, then "user_id" is replaced with
         "profile_real_name".
@@ -823,7 +807,7 @@ class SlackMessages:
             Guru, Guru, Google Calendar, Polly.
         "USLACKBOT" and "B043CSZ0FL7" are the only bot messages if df_msgs,
         but they are not in df_usrs!
-        In the replacements, the "@" are used to wrap the display_name for
+        In the replacements, the "@" is used to wrap the display_name for
         clarity on the text, since names can generally have more than one word
         and many names can be referenced one after the other, which can lead
         to confusion when reading.
@@ -855,8 +839,7 @@ class SlackMessages:
 
     def parent_id_to_name(self, df_msgs, df_usrs):
         """
-        Replaces the parent_user_id to the parent_user's display_name in the
-        column of df_msgs.
+        Replace the parent_user_id to the parent_user's display_name.
 
         Arguments
         ---------
@@ -884,7 +867,7 @@ class SlackMessages:
 
     def ch_id_to_name(self, df_msgs):
         """
-        Replaces the channel_id to the channel's name when mentioned in a msg.
+        Replace the channel_id with the channel's name when mentioned in a msg.
 
         Arguments
         ---------
@@ -926,10 +909,10 @@ class SlackMessages:
 
     def id_automatic_msgs(self, df_msgs):
         """
-        Returns a list with the indices of the messages sent automatically.
+        Return a list with the indices of the messages sent automatically.
 
         Actions include renaming a channel, making the channel public, if
-        an user joined or left the channel, and messages sent by a bot.
+        a user joined or left the channel, and messages sent by a bot.
 
         Arguments
         ---------
@@ -953,8 +936,7 @@ class SlackMessages:
 
     def get_automatic_msgs(self, df_msgs):
         """
-        Returns a dataframe with the automatic messages identified through
-        id_automatic_msgs.
+        Return a dataframe with automatic messages.
 
         Arguments
         ---------
@@ -969,8 +951,7 @@ class SlackMessages:
 
     def rm_automatic_msgs(self, df_msgs):
         """
-        Returns a dataframe without the automatic messages identified
-        through id_automatic_msgs.
+        Return a dataframe without automatic messages.
 
         Arguments
         ---------
@@ -985,8 +966,7 @@ class SlackMessages:
 
     def id_emojis_in_text(self, df_msgs):
         """
-        Returns a dataframe with an additional column "contained_emoji",
-        indicating if the message had any emoji on the first place.
+        Return a dataframe indicating if msg message had emoji(s).
 
         No backup of the emojis is kept.
 
@@ -1008,7 +988,7 @@ class SlackMessages:
 
     def remove_emojis_in_text(self, df_msgs):
         """
-        Returns a dataframe where the emojis in "text" has been removed.
+        Return a dataframe where the emojis in "text" have been removed.
 
         Arguments
         ---------
@@ -1024,8 +1004,7 @@ class SlackMessages:
 
     def id_short_msgs(self, df_msgs, n_char):
         """
-        Returns a list of indices of messages that contain less characters
-        than specified.
+        Return a list of indices of msgs with fewer characters than specified.
 
         Arguments
         ---------
@@ -1045,8 +1024,7 @@ class SlackMessages:
 
     def get_short_msgs(self, df_msgs, n_char):
         """
-        Returns a dataframe including only the short messages identified
-        with id_short_messages.
+        Return a dataframe including only short messages.
 
         Arguments
         ---------
@@ -1063,8 +1041,7 @@ class SlackMessages:
 
     def rm_short_msgs(self, df_msgs, n_char=15):
         """
-        Returns a dataframe without the short messages identifies with
-        id_short_messages.
+        Return a dataframe without short messages.
 
         Arguments
         ---------
@@ -1082,7 +1059,7 @@ class SlackMessages:
 
     def apply_excel_adjustments(self, file_path, ws_name, settings):
         """
-        Formats the Excel tables as specified in the settings txt file.
+        Format the Excel tables as specified in the settings txt file.
 
         Arguments
         ---------
@@ -1093,7 +1070,7 @@ class SlackMessages:
             Name of the Excel Sheet
 
         settings : parser.Parser(txt_path)
-            Parsed users inputs to the settings txt file.
+            Parsed user inputs to the settings txt file.
 
         """
         xl = excel.ExcelFormat(file_path, settings)
@@ -1110,11 +1087,7 @@ class SlackMessages:
         xl.save_changes()
 
     def get_all_messages_df(self):
-        """
-        Writes Excel files from curated dataframes containing all the messages
-        in the chosen Slack channel(s).
-
-        """
+        """Write Excel files from curated dataframes containing all Slack msgs."""
         # Iterate over channel's folders:
         dfs_list = []
         print(datetime.now().time(), "Starting loop over channels", "\n")
@@ -1140,28 +1113,28 @@ class SlackMessages:
                     )
                 continue
 
-            #Collect all the users in the current channel:
+            # Collect all the users in the current channel:
             channel_users_df = self.get_ch_usrs_df(ch_msgs_df, self.usrs_df)
             print(f"{curr_ch_name} Collected users in current channel")
 
-            # --Use channel_users_df to fill-in the user's information in
-            # --ch_msgs_df:
+            # Use channel_users_df to fill in the user's information in
+            # ch_msgs_df:
             self.add_usrs_info_to_msgs_df(ch_msgs_df, channel_users_df)
             print(f"{curr_ch_name} Included the users info on ch_msgs_df")
 
-            # --Replace user and team identifiers with their
+            # Replace user and team identifiers with their
             # display_names whenever present in a message:
             self.usr_id_to_name(ch_msgs_df, channel_users_df)
             self.ch_id_to_name(ch_msgs_df)
             self.parent_id_to_name(ch_msgs_df, channel_users_df)
             print(f"{curr_ch_name} User's id replaced by their names")
 
-            # --Extract hyperlinks from messages, if present
+            # Extract hyperlinks from messages, if present
             # (extracted as a list; edit if needed):
             self.extract_urls(ch_msgs_df)
             print(f"{curr_ch_name} URLs extracted from messages")
 
-            # --Change format of the time in seconds to a date in the
+            # Change format of the time in seconds to a date in the
             # CST time-zone:
             self.ts_to_tz(ch_msgs_df, "ts", "msg_date")
             self.ts_to_tz(ch_msgs_df, "json_mod_ts", "json_mod_date")
@@ -1169,23 +1142,23 @@ class SlackMessages:
             self.ts_to_tz(ch_msgs_df, "ts_thread", "thread_date")
             print(f"{curr_ch_name} Formated the dates and times")
 
-            # --Identify if text has emojis:
+            # Identify if text has emojis:
             ch_msgs_df = self.id_emojis_in_text(ch_msgs_df)
             print(f"{curr_ch_name} Checked for emojis in messages")
 
-            # --Parse for check-in messages:
-            ci = checkins.CheckIns(self.settings_messages)
+            # Parse for check-in messages:
+            ci = checkins.CheckIns(self.settings)
             ch_msgs_df = ci.parse_nrows(ch_msgs_df)
             ch_msgs_df = self.drop_extra_unparsed_rows(ch_msgs_df)
             print(f"{curr_ch_name} Parsed check-in messages")
 
-            # --Build df with pruned messages:
+            # Build df with pruned messages:
             sel_msgs_df = self.rm_automatic_msgs(ch_msgs_df)
             sel_msgs_df = self.remove_emojis_in_text(sel_msgs_df)
             sel_msgs_df = self.rm_short_msgs(sel_msgs_df, n_char=15)
             print(f"{curr_ch_name} Built df with selected rows")
 
-            # --Build df with descarded messages (after being pruned):
+            # Build df with descarded messages (after being pruned):
             auto_msgs = self.get_automatic_msgs(ch_msgs_df)
             short_msgs = self.get_short_msgs(ch_msgs_df, n_char=15)
             dis_msgs = pd.concat([auto_msgs, short_msgs],
@@ -1194,14 +1167,14 @@ class SlackMessages:
                                  inplace=True, ignore_index=True)
             print(f"{curr_ch_name} Built df with filtered-out messages")
 
-            # --Rearrange columns:
-            column_names_order = self.settings_messages.get("columns_order")
+            # Rearrange columns:
+            column_names_order = self.settings.get("columns_order")
             ch_msgs_df = ch_msgs_df[column_names_order]
             sel_msgs_df = sel_msgs_df[column_names_order]
             dis_msgs = dis_msgs[column_names_order]
             print(f"{curr_ch_name} Rearranged columns")
 
-            # --Sort rows by msg_date:
+            # Sort rows by msg_date:
             ch_msgs_df.sort_values(by="msg_date",
                                    inplace=True, ignore_index=True)
             sel_msgs_df.sort_values(by="msg_date",
@@ -1210,7 +1183,7 @@ class SlackMessages:
                                  inplace=True, ignore_index=True)
             print(f"{curr_ch_name} Sorted rows by msg_date")
 
-            # --Write ch_msgs_df to a .xlsx file:
+            # Write ch_msgs_df to a .xlsx file:
             msgs_mindate = ch_msgs_df["msg_date"].min().split(" ")[0]
             msgs_maxdate = ch_msgs_df["msg_date"].max().split(" ")[0]
             curr_ch_name = curr_ch_name.replace(" ", "-")
@@ -1225,13 +1198,13 @@ class SlackMessages:
                 ch_msgs_df.to_excel(writer, index=False,
                                     sheet_name="All messages")
 
-            # --Apply formatting of Excel worksheets:
+            # Apply formatting of Excel worksheets:
             self.apply_excel_adjustments(path, "All messages",
-                                         self.settings_messages)
+                                         self.settings)
             self.apply_excel_adjustments(path, "Relevant messages",
-                                         self.settings_messages)
+                                         self.settings)
             self.apply_excel_adjustments(path, "Filtered-out messages",
-                                         self.settings_messages)
+                                         self.settings)
             print(f"{curr_ch_name} Wrote curated messages to Excel \n")
 
             dfs_list.append(ch_msgs_df)
