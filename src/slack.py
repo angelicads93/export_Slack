@@ -3,12 +3,10 @@
 """
 @author: Angelica Goncalves.
 
-Module to extract info from JSON files to curated dataframes and Excel files.
+Module to convert Slack JSON files into curated dataframes and Excel files.
 
 Classes
 -------
-InspectSource
-
 SlackChannelsAndUsers
 
 SlackMessages
@@ -19,10 +17,7 @@ SlackMessages
 import pandas as pd
 from json import load
 from datetime import datetime
-from os import listdir
-from os.path import getmtime, exists, isdir
-from pathlib import Path
-import shutil
+from os.path import getmtime, exists
 from urlextract import URLExtract
 import re
 
@@ -30,264 +25,7 @@ import re
 import excel
 import clean
 import checkins
-
-
-class InspectSource:
-    """
-    Class to check the validity of the source directory given by the user.
-
-    ...
-
-    Attributes
-    ----------
-    inputs : parser.Parser(txt_path)
-        The parsed user's inputs from the file inputs.txt.
-        Variables defined in inputs.txt are retrieved as inputs.get(var_name).
-
-    settings : parser.Parser(txt_path)
-        The parsed user's inputs from the file settings_messages.txt
-        Variables defined in settings_messages.txt are retrieved as
-        settings.get(var_name).
-
-    Methods
-    -------
-    update_cont_analysis(value)
-        Update the value of the variable 'continue_analysis'.
-
-    get_cont_analysis()
-        Retrieve the value of the variable 'continue_analysis'.
-
-    set_flag_analyze_all_chs()
-        Return a boolean specifying if all the Slack channels must be analyzed
-
-    check_src_path_exists()
-        Checksthat the path to the source data exists.
-
-    check_channels_json_exists()
-        Check if the JSON files with the channels' information exist.
-
-    check_users_json_exists()
-        Check if the JSON files with the user's information exist.
-
-    get_dest_path()
-        Return the absolute path of the destination directory.
-
-    make_dest_path()
-        Create the path where all the files will be saved.
-
-    get_chs_dir()
-        Return list with name(s) of the Slack channel(s) to be converted.
-
-    check_missing_chs()
-        Return a list with the name of the channels that are absent.
-
-    get_jsons_in_ch(list_names)
-        Return a list with the names of a channels JSON files.
-
-    get_jsons_in_all_chs()
-        Return a list with the names of the JSON files of all the channels.
-
-    """
-
-    def __init__(self, inputs, settings):
-
-        # Retrieve users inputs from inputs.txt:
-        self.inputs = inputs
-        self.chosen_channel_name = self.inputs.get('chosen_channel_name')
-        self.slackexport_folder_path = self.inputs.get('slackexport_folder_path')
-        self.converted_directory = self.inputs.get('converted_directory')
-
-        # Retrieve users inputs from settings.txt:
-        self.settings = settings
-        self.dest_name_ext = self.settings.get('dest_name_ext')
-        self.channels_json_name = self.settings.get('channels_json_name')
-        self.users_json_name = self.settings.get('users_json_name')
-
-        # Initialize flag to track validity of the inputs:
-        self.update_cont_analysis(True)
-        #
-        # Perform some checks and retrieve some variables:
-        self.dest_path = self.get_dest_path()
-        self.flag_all_chs = self.set_flag_analyze_all_chs()
-        self.present_chs = self.get_chs_dir()
-        self.missing_chs = self.check_missing_chs()
-        self.chs_jsons = self.get_jsons_in_all_chs()
-
-    def update_cont_analysis(self, value):
-        """
-        Update the value of the variable 'continue_analysis'.
-
-        Arguments
-        ---------
-        value : bool
-            Boolean value (True/False).
-
-        """
-        self.continue_analysis = value
-
-    def get_cont_analysis(self):
-        """Retrieve the value of the variable 'continue_analysis'."""
-        return self.continue_analysis
-
-    def set_flag_analyze_all_chs(self):
-        """
-        Return a boolean specifying if all the Slack channels must be analyzed.
-
-        The input variable "chosen_channel_name" is expected to be an empty
-        string "" if all the Slack channels must be analyzed. Otherwise,
-        it is expected to be a string with the name of the Slack channel as
-        written in the source directory.
-
-        """
-        if len(self.chosen_channel_name) < 1:
-            analyze_all_channels = True
-            print('Channel(s) to analyze: All')
-        else:
-            analyze_all_channels = False
-            print('Channel(s) to analyze: ', self.chosen_channel_name)
-        return analyze_all_channels
-
-    def check_src_path_exists(self):
-        """Verify that the path to the source data exists."""
-        if exists(self.slackexport_folder_path) is False:
-            print('Please enter a valid path to the source directory')
-            self.update_cont_analysis(False)
-
-    def check_channels_json_exists(self):
-        """Check if the JSON files with the channels information exist."""
-        if exists(
-            f"{self.slackexport_folder_path}/{self.channels_json_name}"
-        ) is False:
-            print(f'File {self.channels_json_name} was not found in the '
-                  + 'source directory')
-            self.update_cont_analysis(False)
-
-    def check_users_json_exists(self):
-        """Check if the JSON files with the channels information exist."""
-        if exists(
-            f"{self.slackexport_folder_path}/{self.users_json_name}"
-        ) is False:
-            print(f'File "{self.users_json_name}" was not found in the '
-                  + 'source directory')
-            self.update_cont_analysis(False)
-
-    def get_dest_path(self):
-        """Return the absolute path of the destination directory."""
-        return f"{self.converted_directory}/{self.dest_name_ext}"
-
-    def make_dest_path(self):
-        """
-        Create the path where all the files will be saved.
-
-        If the path already exists, it deletes it and creates a fresh one.
-
-        """
-        # Get the absolute path where all the files will be saved:
-        path = self.get_dest_path()
-
-        # If the path already exists, remove it:
-        if exists(path) is True:
-            exprt_folder_path = Path(path)
-            if exprt_folder_path.is_dir():
-                print(f"WARNING: The path '{path} already exists and it will "
-                      + "be replaced.")
-                shutil.rmtree(exprt_folder_path)
-
-        # Create a fresh path:
-        Path(f"{path}").mkdir(parents=True, exist_ok=True)
-
-    def get_chs_dir(self):
-        """
-        Return list with name(s) of the Slack channel(s) to be converted.
-
-        If analysing one channel, checks that its directory exists, and default
-        to the 0-th element of channels_names:
-        channels_names = [ chosen_channel_name ] for one channel
-        channels_names = [channel0, channel1, ...] for all the channels
-
-        """
-        if self.flag_all_chs is False:
-            # Check that chosen_channel_name is correct and add to list:
-            if exists(
-                f"{self.slackexport_folder_path}/{self.chosen_channel_name}"
-            ) is False:
-                chs_names = []
-                print("ERROR: The source directory for the channel "
-                      + f"'{self.chosen_channel_name}' was not found in "
-                      + f"{self.slackexport_folder_path}")
-                self.update_cont_analysis(False)
-            else:
-                chs_names = [self.chosen_channel_name]
-        else:
-            # Add all directories in the source path to the list:
-            lst_src = listdir(self.slackexport_folder_path)
-            chs_names = [lst_src[i]
-                         for i in range(len(lst_src))
-                         if isdir(f"{self.slackexport_folder_path}/{lst_src[i]}") is True]
-
-        return chs_names
-
-    def check_missing_chs(self):
-        """Return a list with the name of the channels that are absent."""
-        # Get names of channels in channels.json:
-        expected_chs_names = pd.read_json(
-            f"{self.slackexport_folder_path}/{self.channels_json_name}"
-            )['name'].values
-
-        # Get names of expected channels that are not in the source directory:
-        missing_channels = []
-        for ch in self.present_chs:
-            if ch not in expected_chs_names:
-                missing_channels.append(ch)
-
-        # Print message with missing channel(s) in the terminal:
-        if self.flag_all_chs is True:
-            if missing_channels is not []:
-                print("WARNING: The following channels are missing in the "
-                      + "source directory:", missing_channels)
-
-        return missing_channels
-
-    def get_jsons_in_ch(self, ch_files):
-        """
-        Return a list with the names of a channels JSON files.
-
-        Arguments
-        ---------
-        ch_files : list
-            List with the name of all the files inside the directory of a given
-            Slack channel.
-
-        """
-        list_names_dates = []
-        for i in range(len(ch_files)):
-            match = re.match(
-                r'(\d{4})(-)(\d{2})(-)(\d{2})(.)(json)', ch_files[i]
-                )
-            if match is not None:
-                list_names_dates.append(ch_files[i])
-        return list_names_dates
-
-    def get_jsons_in_all_chs(self):
-        """
-        Return a list with the names of the JSON files of all the channels.
-
-        The name of the JSON files should the correct format 'yyyy-mm-dd.json'.
-
-        all_channels_jsonFiles_dates = [
-            [chosen_channel_name_json0, chosen_channel_name_json1, ...]
-            ] for one exportchannel
-        all_channels_jsonFiles_dates = [
-            [channel0_json0, channel0_json1, ...],
-            [channel1_json0, channel1_json1, ...], ...
-            ] for all the channels
-        """
-        all_channels_jsonFiles_dates = []
-        for ch in self.present_chs:
-            channel_jsonFiles_dates = self.get_jsons_in_ch(
-                listdir(f"{self.slackexport_folder_path}/{ch}"))
-            all_channels_jsonFiles_dates.append(channel_jsonFiles_dates)
-        return all_channels_jsonFiles_dates
+import parser
 
 
 class SlackChannelsAndUsers:
@@ -345,7 +83,7 @@ class SlackChannelsAndUsers:
         self.users_excel_name = self.settings.get('users_excel_name')
 
         # Create an instance of the class InspectSource:
-        self.inspect_source = InspectSource(self.inputs, self.settings)
+        self.inspect_source = parser.InspectSource(self.inputs, self.settings)
 
     def write_info_to_file(self, flag, df, filename, path):
         """
@@ -546,7 +284,7 @@ class SlackMessages:
         self.timezone = self.settings.get("timezone")
 
         # Create an instance of the class InspectSource:
-        self.inspect_source = InspectSource(
+        self.inspect_source = parser.InspectSource(
             self.inputs, self.settings)
         self.channels_names = self.inspect_source.present_chs
         self.all_channels_jsonFiles_dates = self.inspect_source.chs_jsons

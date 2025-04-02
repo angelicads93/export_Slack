@@ -10,7 +10,7 @@ import argparse
 parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
-import messages
+import slack
 import parser
 
 if __name__ == "__main__":
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # INSPECT SOURCE DIRECTORY:
     print('------------------------------------------------------------------')
     print('Inspecting the source directory...')
-    inspect_source = messages.InspectSource(inputs, settings_messages)
+    inspect_source = parser.InspectSource(inputs, settings_messages)
     
     # Check that the source directory exists:
     inspect_source.check_src_path_exists()
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print('------------------------------------------------------------------')
     print('Retrieving information on the Slack channels and users...')
     # Initialize constructor of the class SlackChannelAndUsers:
-    scu = messages.SlackChannelsAndUsers(inputs, settings_messages)
+    scu = slack.SlackChannelsAndUsers(inputs, settings_messages)
     
     # Get dataframes with the channels and users info:
     all_channels_df = scu.get_all_channels_info()
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     print('------------------------------------------------------------------')
     print('Retrieving information on the Slack messages...')
     # Initialize constructor of the class SlackMessages:
-    sm = messages.SlackMessages(inputs, settings_messages)
+    sm = slack.SlackMessages(inputs, settings_messages)
     
     # Write the Excel files of the given channel(s):
     channel_messages_df = sm.get_all_messages_df()
