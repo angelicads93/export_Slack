@@ -113,5 +113,5 @@ if __name__ == "__main__":
     # Initialize constructor of the class SlackMessages:
     sm = messages.SlackMessages(inputs, settings_messages)
     
-    # Execute the main function of the class:
+    # Write the Excel files of the given channel(s):
     channel_messages_df = sm.get_all_messages_df()

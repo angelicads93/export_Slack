@@ -296,7 +296,8 @@ class InspectSource:
 
 class SlackChannelsAndUsers:
     """
-    Class to handle the information from the "channels" and "users" JSON files.
+    Class to extract the information from the "channels" and 
+    "users" JSON files and format it into curated Excel files.
 
     Relevant features are added and formatted into "channels" and "users"
     Pandas dataframes, which are later used to complement the information on
@@ -459,6 +460,93 @@ class SlackChannelsAndUsers:
 
 
 class SlackMessages:
+    """
+    Class to extract the Slack messages from JSON files into curated Excel
+    files.
+
+    ...
+
+    Attributes
+    ----------
+    inputs : parser.Parser(txt_path)
+        The parsed user's inputs from the file inputs.txt.
+        Variables defined in inputs.txt are retrieved as inputs.get(var_name).
+
+    settings : parser.Parser(txt_path)
+        The parsed user's inputs from the file settings_messages.txt
+        Variables defined in settings_messages.txt are retrieved as
+        settings.get(var_name).
+
+    Methods
+    -------
+    msg_json_to_df(slack_json)
+        Extracts messages on a channel's JSON file to a curated Pandas dataframe.
+
+    get_ch_msgs_df(self, src_path, ch_name, json_list)
+        Returns a Pandas dataframe with all the messages of a given Slack
+        channel.
+
+    get_ch_usrs_df(df_msgs, df_usrs)
+        Returns a data frame with the information of the users in the given
+        Slack channel.
+
+    add_usrs_info_to_msgs_df(df_msgs, df_usrs)
+        Adds information of the Slack users into the messages dataframe.
+
+    ts_to_tz(df, orig_col_name, new_col_name)
+        Transforms timestamps to dates in a given column of a Pandas dataframe.
+
+    extract_urls(df)
+        Extracts all the URLs found in the messages and stores them in a new
+        columns of the Pandas dataframe.
+
+    usr_id_to_name(df_msgs, df_usrs)
+        Replaces user_id with the user's display_name when mentioned in a msg.
+
+    parent_id_to_name(df_msgs, df_usrs)
+        Replaces the parent_user_id to the parent_user's display_name
+
+    ch_id_to_name(df_msgs)
+        Replaces the channel_id to the channel's name when mentioned in a msg.
+
+    drop_extra_unparsed_rows(df_msgs)
+        Drop extra rows of df_msgs created from misparsed messages.
+
+    id_automatic_msgs(df_msgs)
+        Returns a list with the indices of the messages sent automatically.
+
+    get_automatic_msgs(df_msgs)
+        Returns a dataframe with the automatic messages identified through
+        id_automatic_msgs.
+
+    rm_automatic_msgs(df_msgs)
+        Returns a dataframe without the automatic messages identified
+        through id_automatic_msgs.
+
+    id_emojis_in_text(df_msgs)
+        Returns a dataframe with an additional column "contained_emoji",
+        indicating if the message had any emoji on the first place.
+
+    remove_emojis_in_text(df_msgs)
+        Returns a dataframe where the emojis in "text" has been removed.
+
+    id_short_msgs(df_msgs, n_char)
+        Returns a list of indices of messages that contain less characters than
+        specified.
+
+    get_short_msgs(df_msgs, n_char)
+        Returns a dataframe including only the short messages identified with
+        id_short_messages.
+
+    rm_short_msgs(df_msgs, n_char)
+        Returns a dataframe without the short messages indentified with
+        id_short_messages.
+
+    apply_excel_adjustments(file_path, ws_name, settings):
+        Formats the Excel tables as specified in the settings txt file.
+
+    """
+
     def __init__(self, inputs, settings_messages):
 
         self.inputs = inputs
@@ -468,7 +556,8 @@ class SlackMessages:
         self.missing_value = self.settings_messages.get('missing_value')
         self.timezone = self.settings_messages.get('timezone')
 
-        self.inspect_source = InspectSource(self.inputs, self.settings_messages)
+        self.inspect_source = InspectSource(
+            self.inputs, self.settings_messages)
         self.channels_names = self.inspect_source.present_chs
         self.all_channels_jsonFiles_dates = self.inspect_source.chs_jsons
         self.save_path = self.inspect_source.dest_path
@@ -476,16 +565,27 @@ class SlackMessages:
         self.slack_channels_users = SlackChannelsAndUsers(
             self.inputs, self.settings_messages)
         self.usrs_df = self.slack_channels_users.get_all_users_info()
-        #self.continue_analysis = self.slack_channels_users.continue_analysis
+   
+    def msg_json_to_df(self, slack_json):
+        """
+        Extracts messages on a channel's JSON file to a curated Pandas dataframe.
 
-    def slack_json_to_dataframe(self, slack_json):
-        """ Extracts channel's messages from a JSON file """
+        Arguments
+        ---------
+        slack_json : dict
+            Dictionary contanining the data from the JSON file.
+
+        """
+        # Initialize empty dataframe with given columns:
         msgs_df = pd.DataFrame(
             columns=["msg_id", "ts", "user", "type", "text", "reply_count",
                      "reply_users_count", "ts_latest_reply", "ts_thread",
-                     "parent_user_id"]
-            )
+                     "parent_user_id"])
+
+        # Iterate through each msg and add relevant information to msgs_df:
         for msg in range(len(slack_json)):
+
+            # Add the message id:
             if 'client_msg_id' in slack_json[msg]:
                 msgs_df.at[msg, "msg_id"] = slack_json[msg]['client_msg_id']
             elif 'subtype' in slack_json[msg]:
@@ -493,156 +593,222 @@ class SlackMessages:
             else:
                 msgs_df.at[msg, "msg_id"] = self.missing_value
 
+            # Add the message type:
             if 'type' in slack_json[msg]:
                 msgs_df.at[msg, "type"] = slack_json[msg]['type']
             else:
                 msgs_df.at[msg, "type"] = self.missing_value
 
+            # Add the latest reply to the message:
             if 'reply_count' in slack_json[msg]:
                 msgs_df.at[msg, "ts_latest_reply"] = slack_json[msg]['latest_reply']
             else:
                 msgs_df.at[msg, "ts_latest_reply"] = self.missing_value
 
+            # Add the id of the parent message if message is a reply:
             if 'parent_user_id' in slack_json[msg]:
                 msgs_df.at[msg, "ts_thread"] = slack_json[msg]['thread_ts']
                 msgs_df.at[msg, "type"] = "thread"
             else:
                 msgs_df.at[msg, "ts_thread"] = self.missing_value
 
+            # Add the message itself:
             msgs_df["text"] = msgs_df["text"].astype(str)
 
-            features = ['ts', 'user',  'text', 'reply_count',
-                        'reply_users_count',  'parent_user_id']
-            for col in features:
-                msgs_df.at[msg, col] = slack_json[msg].get(col, self.missing_value)
+            # Add additional columns:
+            for col in ['ts', 'user',  'text', 'reply_count',
+                        'reply_users_count',  'parent_user_id']:
+                msgs_df.at[msg, col] = slack_json[msg].get(col,
+                                                           self.missing_value)
 
         return msgs_df
 
-    def get_ch_msgs_df(self, export_path, curr_ch_name, json_list):
-        """ Extracts all the messages of a given channel from all its JSON
-        files, and stores them on a data frame
+    def get_ch_msgs_df(self, src_path, ch_name, json_list):
         """
+        Returns a Pandas dataframe with all the messages of a given Slack
+        channel.
+
+        Arguments
+        ---------
+        src_path : str
+            Absolute path of the source directory.
+
+        ch_name : str
+            Name of the Slack channel.
+
+        json_list : list
+            List with the name of the JSON files with the channel's messages.
+
+        """
+        # Initialize empty dataframe with given columns:
         ch_msgs_df = pd.DataFrame(
             columns=["msg_id", "ts", "user", "type", "text", "reply_count",
                      "reply_users_count", "ts_latest_reply", "ts_thread",
-                     "parent_user_id"]
-            )
+                     "parent_user_id"])
 
-        # --Iterate over JSONs inside the current channel's folder:
+        # Iterate over JSONs inside the current channel's folder:
         for file_day in range(len(json_list)):
-            filejson_path = f"{export_path}/{curr_ch_name}/{json_list[file_day]}"
+            filejson_path = f"{src_path}/{ch_name}/{json_list[file_day]}"
 
             with open(filejson_path, encoding='utf-8') as f:
                 import_file_json = load(f)
-            import_file_df = self.slack_json_to_dataframe(import_file_json)
+
+            # Get the dataframe from the given JSON file:
+            import_file_df = self.msg_json_to_df(import_file_json)
+
+            # Add some id_cols:
             import_file_df['json_name'] = json_list[file_day]
             import_file_df['json_mod_ts'] = getmtime(filejson_path)
 
-            ch_msgs_df = pd.concat(
-                [ch_msgs_df, import_file_df],
-                axis=0, ignore_index=True
-                )
+            # Concatenate the dataframe from the fiven JSON file with the
+            # "full" dataframe ch_msgs_df:
+            ch_msgs_df = pd.concat([ch_msgs_df, import_file_df],
+                                   axis=0, ignore_index=True)
 
-        ch_msgs_df['channel_folder'] = curr_ch_name
+        # Add a column on the dataframe with the name of the channel:
+        ch_msgs_df['channel_folder'] = ch_name
+
         return ch_msgs_df
 
-    def get_channel_users_df(self, ch_msgs_df, users_df):
-        """ Returns a data frame with the information of the users in current
-        channel
+    def get_ch_usrs_df(self, df_msgs, df_usrs):
         """
-        # --Initialize channel_users_df as a copy of users_df:
-        channel_users_df = users_df.copy()
+        Returns a data frame with the information of the users in the given
+        Slack channel.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        df_usrs : Pandas dataframe
+
+        """
+        # --Initialize channel_df_usrs as a copy of df_usrs:
+        df = df_usrs.copy()
         # --Find the unique set of users in channel:
-        channel_users_list = ch_msgs_df['user'].unique()
+        channel_users_list = df_msgs['user'].unique()
         # --Collect the indices of the users that are NOT in the channel:
         indices_to_drop = [i
-                           for i in range(len(users_df))
-                           if users_df.at[i, 'id'] not in channel_users_list]
+                           for i in range(len(df_usrs))
+                           if df_usrs.at[i, 'id'] not in channel_users_list]
         # --Drop the rows on indices_to_drop:
-        channel_users_df.drop(
-            channel_users_df.index[indices_to_drop], inplace=True
-            )
-        return channel_users_df
+        df.drop(df.index[indices_to_drop], inplace=True)
+        return df
 
-    def add_users_info_to_messages(self, df_messages, df_users):
-        """Uses the user's id in the format U1234567789 from the df_messages to
-        find the name, display name and if the user is a bot from df_users.
-        The 'name', 'display_name' and 'is_bot' are then added as columns to
-        df_messages
+    def add_usrs_info_to_msgs_df(self, df_msgs, df_usrs):
         """
-        for index in df_messages.index.values:
-            i_df = df_users[df_users['id'] == df_messages.at[index, 'user']]
-            # --If users in ch_msgs_df is not in usrs_df:
+        Adds information of the Slack users into the messages dataframe.
+
+        Uses the user's id in the format U1234567789 from the df_msgs to
+        find the name, display name and if the user is a bot from df_usrs.
+        The 'name', 'display_name' and 'is_bot' are then added as columns to
+        df_msgs
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        df_usrs : Pandas dataframe
+
+        """
+        for i in df_msgs.index.values:
+            i_df = df_usrs[df_usrs['id'] == df_msgs.at[i, 'user']]
+            # If users in ch_msgs_df is not in usrs_df:
             if i_df['display_name'].shape[0] == 0 \
-                    and df_messages.at[index, 'user'] == 'USLACKBOT':
-                df_messages.at[index, 'name'] = 'USLACKBOT'
-                df_messages.at[index, 'display_name'] = 'USLACKBOT'
-                df_messages.at[index, 'is_bot'] = True
-                df_messages.at[index, 'deactivated'] = False
+                    and df_msgs.at[i, 'user'] == 'USLACKBOT':
+                df_msgs.at[i, 'name'] = 'USLACKBOT'
+                df_msgs.at[i, 'display_name'] = 'USLACKBOT'
+                df_msgs.at[i, 'is_bot'] = True
+                df_msgs.at[i, 'deactivated'] = False
             elif i_df['display_name'].shape[0] == 0 \
-                    and df_messages.at[index, 'user'] != 'USLACKBOT':
-                df_messages.at[index, 'name'] = "(user not found)"
-                df_messages.at[index, 'display_name'] = "(user not found)"
-                df_messages.at[index, 'is_bot'] = "(user not found)"
-                df_messages.at[index, 'deactivated'] = "(user not found)"
-            # --If users in ch_msgs_df is in usrs_df:
+                    and df_msgs.at[i, 'user'] != 'USLACKBOT':
+                df_msgs.at[i, 'name'] = "(user not found)"
+                df_msgs.at[i, 'display_name'] = "(user not found)"
+                df_msgs.at[i, 'is_bot'] = "(user not found)"
+                df_msgs.at[i, 'deactivated'] = "(user not found)"
+            # If users in ch_msgs_df is in usrs_df:
             else:
-                df_messages.at[index, 'name'] = i_df['name'].values[0]
-                df_messages.at[index, 'display_name'] = i_df['display_name'].values[0]
-                df_messages.at[index, 'is_bot'] = i_df['is_bot'].values[0]
-                df_messages.at[index, 'deactivated'] = i_df['deleted'].values[0]
+                df_msgs.at[i, 'name'] = i_df['name'].values[0]
+                df_msgs.at[i, 'display_name'] = i_df['display_name'].values[0]
+                df_msgs.at[i, 'is_bot'] = i_df['is_bot'].values[0]
+                df_msgs.at[i, "deactivated"] = i_df["deleted"].values[0]
             del i_df
 
-    def ts_to_tz(self, df, original_column_name, new_column_name):
-        """Transforms timestamps in a dataframe's column to dates on the
-        US/Central timezone
+    def ts_to_tz(self, df, orig_col_name, new_col_name):
         """
-        df[original_column_name] = pd.to_numeric(
-            df[original_column_name], errors='coerce'
-            )
+        Transforms timestamps to dates in a given column of a Pandas dataframe.
+
+        Changes the name of the column.
+
+        Arguments
+        ---------
+        df : Pandas dataframe
+
+        orig_col_name : str
+            Name of the column with the timestamps
+
+        new_col_name : str
+            Name to use when renaming the column.
+
+        """
+        # Retrieve the column from the Pandas dataframe:
+        df[orig_col_name] = pd.to_numeric(df[orig_col_name], errors='coerce')
+
+        # Store the converted dates into a list:
         tzs = []
         for i in range(len(df)):
-            i_is_null = pd.Series(
-                df.at[i, original_column_name]
-                ).isnull().values[0]
+            i_is_null = pd.Series(df.at[i, orig_col_name]).isnull().values[0]
             if i_is_null is True:
                 i_date = self.missing_value
             else:
                 i_date = pd.to_datetime(
-                    df.at[i, original_column_name], unit='s'
+                    df.at[i, orig_col_name], unit='s'
                     ).tz_localize('UTC').tz_convert(self.timezone)
                 try:
                     i_date = datetime.strftime(i_date, "%Y-%m-%d %H:%M:%S")
                 except:
                     i_date = self.missing_value
             tzs.append(i_date)
-        df[[original_column_name]].astype('datetime64[s]')
-        df[original_column_name] = tzs
-        df.rename(
-            columns={original_column_name: new_column_name}, inplace=True
-            )
+
+        # First, change the type of the dataframe column:
+        df[[orig_col_name]].astype('datetime64[s]')
+
+        # Then fill the column with the new dates in tzs:
+        df[orig_col_name] = tzs
+
+        # Rename the column that it is now a "date":
+        df.rename(columns={orig_col_name: new_col_name}, inplace=True)
 
     def extract_urls(self, df):
-        """Extracts all the url links in df['text'] and stores them as a list
-        in df['URL']
         """
+        Extracts all the URLs found in the messages and stores them in a new
+        columns of the Pandas dataframe.
+
+        Arguments
+        ---------
+        df : Pandas dataframe
+
+        """
+        # Initialize constructor of the class URLExtract():
         extractor = URLExtract()
+
+        # Iterate over all the messages in df:
         for i in range(len(df)):
-            urls = []
+            # Extract any URLs as list
             urls = extractor.find_urls(df.at[i, 'text'])
             if len(urls) > 0:
-                urls_string = ' ;  '.join(urls)
+                # Rewrite the list as a string separated by commas:
+                urls_string = ';  '.join(urls)
                 df.at[i, 'URL(s)'] = urls_string
             else:
                 df.at[i, 'URL(s)'] = self.missing_value
 
-    def user_id_to_name(self, df_messages, df_users):
-        """Replaces the user_id in the format <@U12345678> to the user's
-        display_name in df_messages['text'], which happens when the user is
-        mentioned in an Slack message through the option @user_name.
+    def usr_id_to_name(self, df_msgs, df_usrs):
+        """
+        Replaces user_id with the user's display_name when mentioned in a msg.
+
         If there is no display_name, then 'user_id' is replaced with
         'profile_real_name'.
-        All the bots in df_users have an 'id' and 'profile_real_name'
+        All the bots in df_usrs have an 'id' and 'profile_real_name'
         (not necessarily 'name' and 'display_id'). Their profile_real_name are:
             Zoom, Google Drive, monday.com, monday.com notifications, GitHub,
             Google Calendar, Loom, Simple Poll, Figma, OneDrive and SharePoint,
@@ -651,93 +817,125 @@ class SlackMessages:
             Clockify - Clocking in/out, Zapier, Update Your Slack Team Icon,
             Jira, Google Sheets, Time Off, Trailhead, Slack Team Emoji Copy,
             Guru, Guru, Google Calendar, Polly.
-        'USLACKBOT' and 'B043CSZ0FL7' are the only bot messages if df_messages,
-        but they are not in df_users!
-        In the replacements, the "<<>>" are used for clarity on the text, since
-        names can generally have more than one word and many names can be
-        referenced one after the other, which can lead to confusion when
-        reading.
+        'USLACKBOT' and 'B043CSZ0FL7' are the only bot messages if df_msgs,
+        but they are not in df_usrs!
+        In the replacements, the "@" are used to wrap the display_name for
+        clarity on the text, since names can generally have more than one word
+        and many names can be referenced one after the other, which can lead
+        to confusion when reading.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        df_usrs : Pandas dataframe
+
         """
-        for i in range(len(df_messages)):
-            text = df_messages.at[i, 'text']
+        for i in range(len(df_msgs)):
+            text = df_msgs.at[i, 'text']
             matches = re.findall(r'<+@[A-Za-z0-9]+>', text)
             if len(matches) > 0:
                 for match in matches:
                     user = match[2:-1]
-                    if user in df_users['id'].values:
-                        name = df_users[df_users['id'] == user]['display_name'].values[0]
-                        is_bot = df_users[df_users['id'] == user]['is_bot'].values[0]
+                    if user in df_usrs['id'].values:
+                        name = df_usrs[df_usrs['id'] == user]['display_name'].values[0]
+                        is_bot = df_usrs[df_usrs['id'] == user]['is_bot'].values[0]
                         if is_bot is True:
-                            name = df_users[df_users['id'] == user]['profile_real_name'].values[0] + ' (bot)'
+                            name = df_usrs[df_usrs['id'] == user]['profile_real_name'].values[0] + ' (bot)'
                         elif name == self.missing_value:
-                            name = df_users[df_users['id'] == user]['profile_real_name'].values[0]
+                            name = df_usrs[df_usrs['id'] == user]['profile_real_name'].values[0]
                     else:
                         name = f"{user} (user not found)"
                     text = re.sub(f"<@{user}>", f"@{name}@", text)
-                df_messages.at[i, 'text'] = text
+                df_msgs.at[i, 'text'] = text
 
-    def parent_user_id_to_name(self, df_messages, df_users):
-        # IP20241121   "parent_user_id"  substitution
-        """Replaces the user_id in the format "UA5748HE" to the user's
-        display_name in df_messages['parent_user_id']
+    def parent_id_to_name(self, df_msgs, df_usrs):
         """
-        for i in range(len(df_messages)):
-            user = df_messages.at[i, 'parent_user_id']
+        Replaces the parent_user_id to the parent_user's display_name in the
+        column of df_msgs.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        df_usrs : Pandas dataframe
+
+        """
+        for i in range(len(df_msgs)):
+            user = df_msgs.at[i, 'parent_user_id']
             if user != self.missing_value:
-                name = df_users[df_users['id'] == user]['display_name'].values
-                if user in df_users['id'].values:
-                    is_bot = df_users[df_users['id'] == user]['is_bot'].values
+                name = df_usrs[df_usrs['id'] == user]['display_name'].values
+                if user in df_usrs['id'].values:
+                    is_bot = df_usrs[df_usrs['id'] == user]['is_bot'].values
                     if is_bot is True:
-                        name = df_users[df_users['id'] == user]['profile_real_name'].values + ' (bot)'
+                        name = df_usrs[df_usrs['id'] == user]['profile_real_name'].values + ' (bot)'
                     elif name == self.missing_value:
-                        name = df_users[df_users['id'] == user]['profile_real_name'].values
+                        name = df_usrs[df_usrs['id'] == user]['profile_real_name'].values
                 else:
                     name = user+' (user not found)'
-                df_messages.at[i, 'parent_user_id'] = name
-        df_messages.rename(
+                df_msgs.at[i, 'parent_user_id'] = name
+        df_msgs.rename(
             columns={'parent_user_id': 'parent_user_name'}, inplace=True
             )
 
-    def channel_id_to_name(self, df_messages, df_users):
-        """Replaces <#channel_id|channel_name> to channel_name in
-        df_messages['text'], which happens when the channel is mentioned in an
-        Slack message through the option #channel_name
+    def ch_id_to_name(self, df_msgs):
         """
-        for i in range(len(df_messages)):
-            text = df_messages.at[i, 'text']
+        Replaces the channel_id to the channel's name when mentioned in a msg.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        """
+        for i in range(len(df_msgs)):
+            text = df_msgs.at[i, 'text']
             matches = re.findall(r'#+[A-Za-z0-9]+\|', text)
             if len(matches) > 0:
                 for match in matches:
+                    # Replace <#channel_id|channel_name> to channel_name
                     text = re.sub(match, "", text)
                     text = re.sub(r"<+\|", "<", text)
-                df_messages.at[i, 'text'] = text
+                df_msgs.at[i, 'text'] = text
 
-    def drop_extra_unparsed_rows(self, df):
-        """ Drops the rows of the final-version of the df that were created
-        from misparsed messages. For example, if the text has two projects, one
+    def drop_extra_unparsed_rows(self, df_msgs):
+        """
+        Drop extra rows of df_msgs created from misparsed messages.
+
+        This is the case, for example, if the text has two projects, one
         identified as "Name:" and the other as "Project Name:"
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
         """
         rows_to_drop = []
-        for i in range(len(df)):
-            if df.at[i, 'projects_parsed'] == self.missing_value:
+        for i in range(len(df_msgs)):
+            if df_msgs.at[i, 'projects_parsed'] == self.missing_value:
                 rows_to_drop.append(i)
-            if df.at[i, 'msg_date'] == self.missing_value \
-                    and df.at[i, 'user'] == self.missing_value:
+            if df_msgs.at[i, 'msg_date'] == self.missing_value \
+                    and df_msgs.at[i, 'user'] == self.missing_value:
                 rows_to_drop.append(i)
-        df = df.drop(rows_to_drop)
-        df = clean.reset_indices(df)
-        return df
+        df_msgs = df_msgs.drop(rows_to_drop)
+        df_msgs = clean.reset_indices(df_msgs)
+        return df_msgs
 
-    def id_automatic_msgs(self, df):
-        """ Get the indices of the messages sent automatically after an action
-        has been taken on a Slack channel (rename channel, make the channel
-        public and if an user joined or left the channel), and messages sent
-        by a bot.
+    def id_automatic_msgs(self, df_msgs):
+        """
+        Returns a list with the indices of the messages sent automatically.
+
+        Actions include renaming a channel, making the channel public, if
+        an user joined or left the channel, and messages sent by a bot.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
         """
         indices = []
-        for i in range(len(df)):
-            msg_id = df.at[i, 'msg_id']
-            is_bot = df.at[i, 'is_bot']
+        for i in range(len(df_msgs)):
+            msg_id = df_msgs.at[i, 'msg_id']
+            is_bot = df_msgs.at[i, 'is_bot']
             if 'channel_join' in msg_id or \
                     'channel_leave' in msg_id or \
                     'channel_name' in msg_id or \
@@ -749,77 +947,150 @@ class SlackMessages:
                 print('bot message identified')
         return indices
 
-    def get_automatic_msgs(self, df):
-        """ Returns a dataframe with the automatic messages identified through
+    def get_automatic_msgs(self, df_msgs):
+        """
+        Returns a dataframe with the automatic messages identified through
         id_automatic_msgs.
-        """
-        df_ = df.loc[self.id_automatic_msgs(df)]
-        return clean.reset_indices(df_)
 
-    def remove_automatic_msgs(self, df):
-        """ Returns a dataframe without the the automatic messages identified
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        """
+        # Retrieve rows from indices:
+        df = df_msgs.loc[self.id_automatic_msgs(df_msgs)]
+        # Reset the indices:
+        clean.reset_indices(df)
+        return df
+
+    def rm_automatic_msgs(self, df_msgs):
+        """
+        Returns a dataframe without the automatic messages identified
         through id_automatic_msgs.
-        """
-        indices2drop = self.id_automatic_msgs(df)
-        df_ = df.copy()
-        df_.drop(indices2drop, inplace=True)
-        clean.reset_indices(df_)
-        return df_
 
-    def id_emojis_in_text(self, df):
-        """ Returns a dataframe with an additional column "contained_emoji",
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        """
+        # Create a copy of the input dataframe and drop the relevant indices:
+        df = df_msgs.copy()
+        df.drop(self.id_automatic_msgs(df_msgs), inplace=True)
+        clean.reset_indices(df)
+        return df
+
+    def id_emojis_in_text(self, df_msgs):
+        """
+        Returns a dataframe with an additional column "contained_emoji",
         indicating if the message had any emoji on the first place.
+
         No backup of the emojis is kept.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
         """
         pattern = r'(:)([a-z0-9\_\-\+]+)(:)'
-        for i in range(len(df)):
-            text = df.at[i, 'text']
+        for i in range(len(df_msgs)):
+            text = df_msgs.at[i, 'text']
             match = re.search(pattern, text)
             if match is None:
-                df.at[i, 'contained_emoji'] = False
+                df_msgs.at[i, 'contained_emoji'] = False
             else:
-                df.at[i, 'contained_emoji'] = True
-                df.at[i, 'text'] = re.sub(pattern, "", text)
-        return df
+                df_msgs.at[i, 'contained_emoji'] = True
+                df_msgs.at[i, 'text'] = re.sub(pattern, "", text)
+        return df_msgs
 
-    def remove_emojis_in_text(self, df):
-        """ Returns a dataframe where the emojis in "text" has been removed """
+    def remove_emojis_in_text(self, df_msgs):
+        """
+        Returns a dataframe where the emojis in "text" has been removed.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        """
         pattern = r'(:)([a-z0-9\_\-\+]+)(:)'
-        for i in range(len(df)):
-            if df.at[i, 'contained_emoji'] is True:
-                df.at[i, 'text'] = re.sub(pattern, "", df.at[i, 'text'])
-        return df
+        for i in range(len(df_msgs)):
+            if df_msgs.at[i, 'contained_emoji'] is True:
+                df_msgs.at[i, 'text'] = re.sub(pattern, "",
+                                               df_msgs.at[i, 'text'])
+        return df_msgs
 
-    def id_short_msgs(self, df, n_char=15):
-        """ Returns a list of indices of messages that contain less characters
-        than the given n_char value.
+    def id_short_msgs(self, df_msgs, n_char):
+        """
+        Returns a list of indices of messages that contain less characters
+        than specified.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        n_char : int
+            Minimum number of characters that a message should have to not be
+            dropped.
+
         """
         indices = []
-        for i in range(len(df)):
-            text = df.at[i, 'text']
+        for i in range(len(df_msgs)):
+            text = df_msgs.at[i, 'text']
             if len(text) <= n_char:
                 indices.append(i)
         return indices
 
-    def get_short_msgs(self, df, n_char):
-        """ Returns a dataframe including only the short messages identified
+    def get_short_msgs(self, df_msgs, n_char):
+        """
+        Returns a dataframe including only the short messages identified
         with id_short_messages.
-        """
-        df_ = df.loc[self.id_short_msgs(df, n_char)]
-        return clean.reset_indices(df_)
 
-    def remove_short_msgs(self, df, n_char):
-        """ Returns a dataframe without the short messages identifies with
-        id_short_messages.
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        n_char : int
+            Minimum number of characters that a message should have to not be
+            dropped.
+
         """
-        indices2drop = self.id_short_msgs(df, n_char)
-        df_ = df.copy()
-        df_.drop(indices2drop, inplace=True)
-        return clean.reset_indices(df_)
+        df = df_msgs.loc[self.id_short_msgs(df_msgs, n_char)]
+        clean.reset_indices(df)
+        return df
+
+    def rm_short_msgs(self, df_msgs, n_char=15):
+        """
+        Returns a dataframe without the short messages identifies with
+        id_short_messages.
+
+        Arguments
+        ---------
+        df_msgs : Pandas dataframe
+
+        n_char : int (optional. Default value is 15)
+            Minimum number of characters that a message should have to not be
+            dropped.
+        """
+        indices2drop = self.id_short_msgs(df_msgs, n_char)
+        df = df_msgs.copy()
+        df.drop(indices2drop, inplace=True)
+        clean.reset_indices(df)
+        return df
 
     def apply_excel_adjustments(self, file_path, ws_name, settings):
-        """ Defines the sequence of changes to be done in the Excel file
-        given the user's inputs in the module settings.
+        """
+        Formats the Excel tables as specified in the settings txt file.
+
+        Arguments
+        ---------
+        file_path : str
+            Absolute path to the Excel file
+
+        ws_name : str
+            Name of the Excel Sheet
+
+        settings : parser.Parser(txt_path)
+            Parsed users inputs to the settings txt file.
+
         """
         xl = excel.ExcelFormat(file_path, settings)
         ws = xl.get_sheet(ws_name)
@@ -835,32 +1106,28 @@ class SlackMessages:
         xl.save_changes()
 
     def get_all_messages_df(self):
-        """ Most generally, it iterates over all the Slack channels and
-        extracts the messages of each channel and saves them in a formated
-        Excel file. Only one channel is analyzed if the user specifies so in
-        the input file.
         """
-        # --Iterate over channel's folders:
+        Writes Excel files from curated dataframes containing all the messages
+        in the chosen Slack channel(s).
+
+        """
+        # Iterate over channel's folders:
         dfs_list = []
         print(datetime.now().time(), 'Starting loop over channels', '\n')
         for i_channel in range(len(self.channels_names)):
 
-            # --Define the name of the current channel and the source
-            # --path containing its json files:
+            # Define the name of the current channel and the source path
+            # containing its json files:
             curr_ch_name = self.channels_names[i_channel]
-            print(
-                curr_ch_name, datetime.now().time(),
-                ' Set-up channel name and path to directory'
-                )
+            print(curr_ch_name, datetime.now().time())
+            print(f'{curr_ch_name} Set-up channel name and path to directory')
 
-            # --Collect all the current_channel's messages in
-            # ch_msgs_df::
+            # Collect all the current_channel's messages in ch_msgs_df:
             json_list = self.all_channels_jsonFiles_dates[i_channel]
             ch_msgs_df = self.get_ch_msgs_df(
                 self.slackexport_folder_path, curr_ch_name, json_list
                 )
-            print(f'{curr_ch_name} Collected channel messages from the '
-                  + 'json files')
+            print(f'{curr_ch_name} Collected channel msgs from the json files')
             if len(ch_msgs_df) < 1:
                 print(
                     "for the folder ", curr_ch_name,
@@ -869,21 +1136,20 @@ class SlackMessages:
                     )
                 continue
 
-            # --Collect all the users in the current channel:
-            channel_users_df = self.get_channel_users_df(ch_msgs_df,
-                                                         self.usrs_df)
+            #Collect all the users in the current channel:
+            channel_users_df = self.get_ch_usrs_df(ch_msgs_df, self.usrs_df)
             print(f'{curr_ch_name} Collected users in current channel')
 
             # --Use channel_users_df to fill-in the user's information in
             # --ch_msgs_df:
-            self.add_users_info_to_messages(ch_msgs_df, channel_users_df)
+            self.add_usrs_info_to_msgs_df(ch_msgs_df, channel_users_df)
             print(f'{curr_ch_name} Included the users info on ch_msgs_df')
 
             # --Replace user and team identifiers with their
             # display_names whenever present in a message:
-            self.user_id_to_name(ch_msgs_df, channel_users_df)
-            self.channel_id_to_name(ch_msgs_df, channel_users_df)
-            self.parent_user_id_to_name(ch_msgs_df, channel_users_df)
+            self.usr_id_to_name(ch_msgs_df, channel_users_df)
+            self.ch_id_to_name(ch_msgs_df)
+            self.parent_id_to_name(ch_msgs_df, channel_users_df)
             print(f"{curr_ch_name} User's id replaced by their names")
 
             # --Extract hyperlinks from messages, if present
@@ -910,9 +1176,9 @@ class SlackMessages:
             print(f'{curr_ch_name} Parsed check-in messages')
 
             # --Build df with pruned messages:
-            sel_msgs_df = self.remove_automatic_msgs(ch_msgs_df)
+            sel_msgs_df = self.rm_automatic_msgs(ch_msgs_df)
             sel_msgs_df = self.remove_emojis_in_text(sel_msgs_df)
-            sel_msgs_df = self.remove_short_msgs(sel_msgs_df, n_char=15)
+            sel_msgs_df = self.rm_short_msgs(sel_msgs_df, n_char=15)
             print(f'{curr_ch_name} Built df with selected rows')
 
             # --Build df with descarded messages (after being pruned):
