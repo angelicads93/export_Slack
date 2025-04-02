@@ -63,12 +63,20 @@ if __name__ == "__main__":
 
     # --Initialize constructor of the class SlackChannelAndUsers:
     scu = messages.SlackChannelsAndUsers(inputs, settings_messages)
-    # --Execute the main functions of the class:
-    scu.get_all_channels_info()
-    scu.get_all_users_info()
-    # --Retrieve variables:
-    all_channels_df = scu.all_channels_df
-    all_users_df = scu.all_users_df
+    # --Get dataframes with the channels and users info:
+    all_channels_df = scu.get_all_channels_info()
+    all_users_df = scu.get_all_users_info()
+    # --Write Excel files if requested by the user:
+    scu.write_info_to_file(
+        flag=inputs.get('write_all_channels_info'),
+        df=all_channels_df,
+        filename=settings_messages.get('channels_excel_name').split(".")[0],
+        path=scu.save_path)
+    scu.write_info_to_file(
+        flag=inputs.get('write_all_users_info'),
+        df=all_users_df,
+        filename=settings_messages.get('users_excel_name').split(".")[0],
+        path=scu.save_path)
 
     # --Initialize constructor of the class SlackMessages:
     sm = messages.SlackMessages(inputs, settings_messages)
