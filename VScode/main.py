@@ -68,15 +68,15 @@ if __name__ == "__main__":
     all_users_df = scu.get_all_users_info()
     # --Write Excel files if requested by the user:
     scu.write_info_to_file(
-        flag=inputs.get('write_all_channels_info'),
-        df=all_channels_df,
-        filename=settings_messages.get('channels_excel_name').split(".")[0],
-        path=scu.save_path)
+        inputs.get('write_all_channels_info'),
+        all_channels_df,
+        settings_messages.get('channels_excel_name').split(".")[0],
+        scu.save_path)
     scu.write_info_to_file(
-        flag=inputs.get('write_all_users_info'),
-        df=all_users_df,
-        filename=settings_messages.get('users_excel_name').split(".")[0],
-        path=scu.save_path)
+        inputs.get('write_all_users_info'),
+        all_users_df,
+        settings_messages.get('users_excel_name').split(".")[0],
+        scu.save_path)
 
     # --Initialize constructor of the class SlackMessages:
     sm = messages.SlackMessages(inputs, settings_messages)

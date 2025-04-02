@@ -195,120 +195,168 @@ class InspectSource:
 
 
 class SlackChannelsAndUsers:
-    def __init__(self,  inputs, settings_messages):
+    """
+    Class to handle the information from the "channels" and "users" JSON files.
 
-        # --Retrieve users inputs from inputs.txt:
+    Relevant features are added and formatted into "channels" and "users"
+    Pandas dataframes, which are later used to complement the information on
+    the channel's messages.
+    Requires objects of the customed classes "Parser" and  "InspectSource".
+
+    ...
+
+    Attributes
+    ----------
+    inputs : parser.Parser(txt_path)
+        The parsed user's inputs from the file inputs.txt.
+        Variables defined in inputs.txt are retrieved as inputs.get(var_name).
+
+    settings : parser.Parser(txt_path)
+        The parsed user's inputs from the file settings_messages.txt
+        Variables defined in settings_messages.txt are retrieved as
+        settings.get(var_name).
+
+    Methods
+    -------
+    write_info_to_file(flag=None, df=None, filename=None, path=None)
+        Writes a given Pandas dataframe into an Excel file
+
+    get_all_channels_info()
+        Generates a curated Pandas dataframe from the "channels" JSON file.
+
+    get_all_users_info()
+        Generates a curated Pandas dataframe from the "users" JSON file.
+
+    """
+
+    def __init__(self, inputs, settings):
+
+        # Retrieve users inputs from inputs.txt:
         self.inputs = inputs
         self.write_all_channels_info = self.inputs.get('write_all_channels_info')
         self.write_all_users_info = self.inputs.get('write_all_users_info')
         self.slackexport_folder_path = self.inputs.get('slackexport_folder_path')
         self.converted_directory = self.inputs.get('converted_directory')
 
-        # --Retrieve users inputs from settings_messages.txt
-        self.settings_messages = settings_messages
-        self.missing_value = self.settings_messages.get('missing_value')
-        self.timezone = self.settings_messages.get('timezone')
-        self.dest_name_ext = self.settings_messages.get('dest_name_ext')
-        self.channels_json_name = self.settings_messages.get('channels_json_name')
-        self.users_json_name = self.settings_messages.get('users_json_name')
-        self.channels_excel_name = self.settings_messages.get('channels_excel_name')
-        self.users_excel_name = self.settings_messages.get('users_excel_name')
-        
-        # Create instance of the class InspectSource
-        self.inspect_source = InspectSource(self.inputs, self.settings_messages)
-        
-        # Absolute path where to save the Excel files built from channels.json
-        # and users.json:
+        # Retrieve users inputs from settings.txt:
+        self.settings = settings
+        self.missing_value = self.settings.get('missing_value')
+        self.timezone = self.settings.get('timezone')
+        self.dest_name_ext = self.settings.get('dest_name_ext')
+        self.channels_json_name = self.settings.get('channels_json_name')
+        self.users_json_name = self.settings.get('users_json_name')
+        self.channels_excel_name = self.settings.get('channels_excel_name')
+        self.users_excel_name = self.settings.get('users_excel_name')
+
+        # Create an instance of the class InspectSource:
+        self.inspect_source = InspectSource(self.inputs, self.settings)
+
+        # Absolute path where to save the Excel files built from channels and
+        # users JSON files:
         self.save_path = self.inspect_source.save_in_path()
 
-    def write_info_to_file(self, flag=None, df=None, filename=None, path=None):
-        """ Writes a given dataframe to an Excel file """
+    def write_info_to_file(self, flag, df, filename, path):
+        """
+        Writes a given dataframe to an Excel file.
+
+        Parameters
+        ----------
+        flag : bool
+            Boolean specifying if proceeding with writing the Excel file.
+        df : pandas.df()
+            Pandas dataframe to be written into the Excel file.
+        filename : str
+            The name of the Excel file to be written.
+        path : str
+            The absolute path where to store the Excel file.
+
+        """
         if flag is True:
-            df.to_excel(f"{path}/{filename}{'.xlsx'}",
-                        index=False)
+            df.to_excel(f"{path}/{filename}{'.xlsx'}", index=False)
             print(datetime.now().time(), f"Wrote file {filename}.xlsx")
 
     def get_all_channels_info(self):
-        """ Exports the channel's JSON file into a dataframe and filters/format
-        relevant features.
-        The primary features of chs_df are:
-            id, name, created, creator, is_archived, is_general, members, pins,
-            topic, purpose.
-        The secondary features of 'pins' are:
-            id, type, created, user, owner.
-            Generally a list of dictionaries.
-        The secondary features of 'topic' are:
-            value, creator, last_set.
         """
-        # --Export channels.json to dataframe:
-        chs_df = pd.read_json(
-            f"{self.slackexport_folder_path}/{self.channels_json_name}"
-            )
+        Exports the channel's JSON file into a curated Pandas dataframe.
 
-        # --Edit some features of chs_df:
+        The primary features of the dataframe are: id, name, created, creator,
+            is_archived, is_general, members, pins, topic, purpose.
+        The secondary features of 'pins' are: id, type, created, user, owner.
+        The secondary features of 'topic' are: value, creator, last_set.
+
+        """
+        # Export channels.json to dataframe:
+        chs_df = pd.read_json(
+            f"{self.slackexport_folder_path}/{self.channels_json_name}")
+
+        # Inspect each row and edit features of chs_df:
         for i in range(len(chs_df)):
-            
-            # --Add df['members']:
+
+            # Transfor "members" from a list to a string separated by ";":
             chs_df.at[i, 'members'] = ", ".join(chs_df.at[i, 'members'])
-            
-            # --Adds df['purpose']:
+
+            # Adds df['purpose']:
             chs_df.at[i, 'purpose'] = chs_df.at[i, 'purpose']['value']
-            
-            # --Add df['json_files'] with the channel's json_files in the 
-            # --correct format (yyyy-mm-dd.json):
+
+            # Add df['json_files'] with the channel's json_files. Use the
+            # function "check_format_of_json_names" of the module
+            # "inspect_source" module to verify the names of the files are in
+            # the correct format (yyyy-mm-dd.json):
             channel_path = f"{self.slackexport_folder_path}/{chs_df.at[i, 'name']}"
             if exists(channel_path) is True:
                 chs_df.at[i, 'json_files'] = str(
                     self.inspect_source.check_format_of_json_names(
                         listdir(channel_path)))
             else:
-                chs_df.at[i, 'json_files']
+                chs_df.at[i, 'json_files'] = self.missing_value
 
-        # --Keep relevant features:
-        chs_df = chs_df[['id', 'name', 'created', 'creator', 'is_archived', 
-                         'is_general','members', 'purpose', 'json_files']]
+        # Keep relevant features:
+        chs_df = chs_df[['id', 'name', 'created', 'creator', 'is_archived',
+                         'is_general', 'members', 'purpose', 'json_files']]
 
-        # --Handle missing values or empty strings:
+        # Handle missing values or empty strings:
         for col in ['members', 'purpose']:
             clean.replace_empty_space(chs_df, col, self.missing_value)
-        
+
         return chs_df
 
     def get_all_users_info(self):
-        """ Exports the file users.json into the dataframe usrs_df and
-        filters/format relevant features.
-        The primary features of usrs_df are:
-            id, team_id, name, deleted, color, real_name, tz, tz_label,
-            tz_offset, profile, is_admin, is_owner, is_primary_owner,
-            is_restricted,is_ultra_restricted, is_bot, is_app_user, updated,
-            is_email_confirmed, who_can_share_contact_card, is_invited_user,
-            is_workflow_bot, is_connector_bot.
-        Among the secondary features of 'profile', there are:
-            title, phone, skype, real_name, real_name_normalized, display_name,
+        """
+        Exports the user's JSON file into a curated Pandas dataframe.
+
+        The primary features of usrs_df are: id, team_id, name, deleted, color,
+            real_name, tz, tz_label, tz_offset, profile, is_admin, is_owner,
+            is_primary_owner, is_restricted,is_ultra_restricted, is_bot,
+            is_app_user, updated, is_email_confirmed,
+            who_can_share_contact_card, is_invited_user, is_workflow_bot,
+            is_connector_bot.
+        Among the secondary features of 'profile', there are: title, phone,
+            skype, real_name, real_name_normalized, display_name,
             display_name_normalized, fields,status_text, status_emoji,
             status_emoji_display_info, status_expiration, avatar_hash,
             image_original, is_custom_image, email, huddle_state,
             huddle_state_expiration_ts, first_name, last_name, image_24,
             image_32, image_48, image_72, image_192, image_512, image_1024,
             status_text_canonical, team.
+
         """
-        # --Read users.json as a dataframe:
+        # Read users.json as a dataframe:
         usrs_df = pd.read_json(
             f"{self.slackexport_folder_path}/{self.users_json_name}")
 
-        # --Edit some features of usrs_df:
+        # Inspect each row and edit features of usrs_df:
         for i in range(len(usrs_df)):
             usrs_df.at[i, 'display_name'] = usrs_df.at[i, 'profile']['display_name']
             for col in ['title', 'real_name', 'status_text', 'status_emoji']:
                 usrs_df.at[i, f"profile_{col}"] = usrs_df.at[i, 'profile'][col]
-        
-        # --Keep relevant features:
-        usrs_df = usrs_df[['id', 'team_id', 'name', 'deleted', 'display_name', 
-                           'is_bot', 'profile_title', 'profile_real_name', 
-                           'profile_status_text','profile_status_emoji']]
 
-        # --Handling missing values in usrs_df:
-        for col in ['display_name', 'name', 'team_id', 'id', 'profile_title', 
+        # Keep relevant features:
+        usrs_df = usrs_df[['id', 'team_id', 'name', 'deleted', 'display_name',
+                           'is_bot', 'profile_title', 'profile_real_name',
+                           'profile_status_text', 'profile_status_emoji']]
+
+        # Handle missing values or empty strings:
+        for col in ['display_name', 'name', 'team_id', 'id', 'profile_title',
                     'profile_real_name']:
             clean.replace_empty_space(usrs_df, col, self.missing_value)
 
