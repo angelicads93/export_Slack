@@ -885,8 +885,8 @@ class SlackMessages:
             print(f"{curr_ch_name} Checked for emojis in messages")
 
             # Parse for check-in messages:
-            ci = checkins.CheckIns(self.settings)
-            ch_msgs_df = ci.parse_nrows(ch_msgs_df)
+            ch_msgs_df = checkins.parse_reports(ch_msgs_df, self.settings)
+
             ch_msgs_df = self.drop_extra_unparsed_rows(ch_msgs_df)
             print(f"{curr_ch_name} Parsed check-in messages")
 
