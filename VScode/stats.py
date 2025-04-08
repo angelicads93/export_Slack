@@ -1,14 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb 23 10:59:17 2025
-@author: Angelica Goncalves
+@author: Angelica Goncalves.
+
+Module to build an Excel workbook with the compiled weekly reports.
+
+Functions
+---------
+
+parse_command_input()
+    Parse the command entered by the user in the terminal.
+
+check_input(file_name, compilation_reports_path, excel_channels_path)
+    Verify validity of the user's inputs in the settings module.
+
+check_channel(file_name, list_channels)
+    Check if file_name is indeed an expected Slack channel.
+
+add_channel_info(ch_path, ch_df)
+    Get name of channel, export time and relative number of reports.
+
+add_info_of_users_reports(df)
+    Get latest report date and number of messages in the given channel.
+
+format_parsed_reports(df)
+    Select the parsed weekly reports and sort the df by channel.
+
+format_unparsed_reports(df, wr_ch_name)
+    Select the unparsed weekly reports and sort the df by channel.
+
+apply_excel_adjustments(file_path, ws_name, settings)
+    Format the Excel tables as specified in the settings txt file.
+
 """
+
+# Import standard libraries:
 import pandas as pd
 import sys
 import os
 import argparse
 
+# Import custom modules:
 parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(parent_dir)
 sys.path.append(os.path.join(parent_dir, 'src'))
@@ -18,7 +50,15 @@ import parser
 
 
 def parse_command_input():
-    """ Parse the user's input command. """
+    """
+    Parse the command entered by the user in the terminal.
+
+    Returns
+    -------
+    settings_file_path : str
+        Path to the "settings" configuration file entered by the user.
+
+    """
     parser = argparse.ArgumentParser(
         description="Python script to compile all the weekly reports from "
         + "individual Excel files."
@@ -36,7 +76,22 @@ def parse_command_input():
 
 
 def check_input(file_name, compilation_reports_path, excel_channels_path):
-    """ Verify validity of the user's inputs in the settings module. """
+    """
+    Verify validity of the user's inputs in the settings module.
+
+    Arguments
+    ---------
+    file_name : str
+        Name of the input file.
+
+    compilation_reports_path : str
+        Destination path where to save.
+
+    excel_channels_path : str
+        Path to the directory containing the required Excel files with the
+        formated/parsed Slack messages.
+
+    """
     if os.path.exists(compilation_reports_path) is False:
         print(f"ERROR: Path {compilation_reports_path} does not exists." + "\n"
               + "       Please review your input for the variable"
@@ -50,8 +105,19 @@ def check_input(file_name, compilation_reports_path, excel_channels_path):
 
 
 def get_list_channels(source_path):
-    """ Retrieve the name of all the expected Slack channels from the
-    Slack-export source directory.
+    """
+    Retrieve the name of expected Slack channels from the source directory.
+
+    Arguments
+    ---------
+    source_path : str
+        Path to the directory with all the source information as exported
+        from Slack.
+
+    Returns
+    -------
+    Python list.
+
     """
     channels_path = os.listdir(source_path)
     for i, ch in enumerate(channels_path):
@@ -61,7 +127,18 @@ def get_list_channels(source_path):
 
 
 def check_channel(file_name, list_channels):
-    """ Check if file_name is indeed an expected Slack channel. """
+    """
+    Check if file_name is indeed an expected Slack channel.
+
+    Arguments
+    ---------
+    file_name : str
+        Name of the Slack channel.
+
+    list_channels : list
+        List with the name of all the channels in the source directory.
+
+    """
     cn = "_".join(file_name.split("_")[:-3])
     cn = cn.replace(" ", "").replace("-", "").replace("_", "")
     if cn in list_channels:
@@ -71,8 +148,18 @@ def check_channel(file_name, list_channels):
 
 
 def add_channel_info(channel_path, channel_df):
-    """ Get name of channel, time interval of the export and relative number
-    of reports.
+    """
+    Get name of channel, export time and relative number of reports.
+
+    Arguments
+    ---------
+    channel_path : str
+        Absolute path to the channels directory.
+
+    channel_df : Pandas dataframe
+        Dataframe with the information of all the channels in the Slack
+        workspace.
+
     """
     channel_name = "_".join(channel_path.split("/")[-1].split(".")[0].split('_')[:-3])
     channel_date = " ".join(channel_path.split('/')[-1].split(".")[0].split('_')[-3:])
@@ -87,8 +174,17 @@ def add_channel_info(channel_path, channel_df):
 
 
 def add_info_of_users_reports(df):
-    """ Get latest report date and number of messages in the given channel for
-    all the users in the channel.
+    """
+    Get latest report date and number of messages in the given channel.
+
+    Arguments
+    ---------
+    df : Pandas dataframe
+
+    Returns
+    -------
+    df_out : Pandas dataframe
+
     """
     users = df['user'].unique()
     for user in users:
@@ -107,7 +203,18 @@ def add_info_of_users_reports(df):
 
 
 def format_parsed_reports(df):
-    """ Select the parsed weekly reports and sort the df by channel. """
+    """
+    Select the parsed weekly reports and sort the df by channel.
+
+    Arguments
+    ---------
+    df : Pandas dataframe
+
+    Returns
+    -------
+    df_p : Pandas dataframe
+
+    """
     df_p = df.copy()
     df_p = df_p[df_p['projects_parsed'] != '0']
     df_p = df_p.reset_index().drop(columns=['index'])
@@ -117,7 +224,19 @@ def format_parsed_reports(df):
 
 
 def format_unparsed_reports(df, wr_channel_name):
-    """ Select the unparsed weekly reports and sort the df by channel. """
+    """
+    Select the unparsed weekly reports and sort the df by channel.
+
+    Arguments
+    ---------
+    wr_ch_name : str
+        Channel name of the given weekly report.
+
+    Returns
+    -------
+    df_np : Pandas dataframe
+
+    """
     df_np = df.copy()
     df_np = df_np[df_np['channel'] == wr_channel_name]
     df_np = df_np[df_np['projects_parsed'] == "0"]
@@ -131,8 +250,20 @@ def format_unparsed_reports(df, wr_channel_name):
 
 
 def apply_excel_adjustments(file_path, sheet_name, settings):
-    """ Defines the sequence of changes to be done in the Excel file
-    given the user's inputs in the module "settings".
+    """
+    Format the Excel tables as specified in the settings txt file.
+
+    Arguments
+    ---------
+    file_path : str
+        Absolute path to the Excel file
+
+    sheet_name : str
+        Name of the Excel Sheet
+
+    settings : parser.Parser(txt_path)
+        Parsed user inputs to the settings txt file.
+
     """
     xl = excel.ExcelFormat(file_path, settings)
     ws_channel = xl.get_sheet(sheet_name)
@@ -164,7 +295,7 @@ if __name__ == '__main__':
 
     # --Check the input and retrieve expected name of channels:
     print("Checking validity of input paths")
-    check_input(file_name, 
+    check_input(file_name,
                 sett_stats.get('compilation_reports_path'),
                 sett_stats.get('excel_channels_path'))
     expected_channels = get_list_channels(sett_stats.get('jsons_source_path'))
