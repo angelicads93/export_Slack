@@ -27,6 +27,9 @@ check_file_exists(file_path, kill=False)
 list_dirs_in_path(source_path)
     Extract the directories in source_path.
 
+check_ch(file_name, source_path)
+    Check if file_name is indeed an expected Slack channel.
+
 make_dest_path(path)
     Create the path where all the files will be saved.
 """
@@ -36,6 +39,7 @@ import os
 import sys
 from pathlib import Path
 import shutil
+import argparse
 
 
 class Parser:
@@ -91,6 +95,7 @@ class Parser:
 
         # List the name of all the variables defined in txt_path:
         self.var_names = self.var_dict.keys()
+
 
     def vars_def_in_one_line(self):
         """
@@ -213,6 +218,17 @@ class Parser:
         return out
 
 
+def init_command_parser(description, args_names):
+    
+    # Create instance of the ArgumentParser class:
+    argparser = argparse.ArgumentParser(description=description)
+    
+    # Add as many arguments as variables in args_names:
+    for i in range(len(args_names)):
+        argparser.add_argument("--"+args_names[i], required=True, type=str)
+    
+    return argparser.parse_args()
+    
 def set_flag_analyze_all_chs(chosen_channel_name):
     """
     Return a boolean specifying if all the Slack channels must be analyzed.
@@ -361,6 +377,49 @@ def list_dirs_in_path(source_path):
                  for i in range(len(lst_src))
                  if os.path.isdir(f"{source_path}/{lst_src[i]}") is True]
     return chs_names
+
+
+def check_ch(file_name, source_path):
+    """
+    Check if file_name is indeed an expected Slack channel.
+
+    Notice that the default name of a channel's directory may contain empty
+    spaces (" "), although the name of the corresponding Excel file does not.
+    Empty spaces were replaced by underscores in the later.
+
+    Arguments
+    ---------
+    file_name : str
+        Name of the Slack channel.
+
+    source_path : str
+        Path to the source directory containing all the Slack JSON files.
+
+    Returns
+    -------
+    Boolean. Whether file_name is present in source_path.
+
+    """
+    # Collect the name of all channel's subdirectories after removing all type
+    # of spaces and separators from their names:
+    chs_path = list_dirs_in_path(source_path)
+    for i, ch in enumerate(chs_path):
+        ch = ch.replace(" ", "").replace("-", "").replace("_", "")
+        chs_path[i] = ch
+
+    # Extract channel_name from the full name of the Excel file
+    # ("<channel_name>_<start_date>_to_<end_date>.xlsx"):
+    cn = "_".join(file_name.split("_")[:-3])
+
+    # Remove all types of spaces and separators to compare the names further:
+    cn = cn.replace(" ", "").replace("-", "").replace("_", "")
+
+    # Compare the names:
+    out = True
+    if cn not in chs_path:
+        out = False
+
+    return out
 
 
 def make_dest_path(path):

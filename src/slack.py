@@ -5,6 +5,9 @@
 
 Module to extract and format the exported information of a Slack workspace.
 
+All the custom functions that edits informationfrom the Slack export
+are collected here.
+
 Classes
 -------
 Slack
@@ -12,8 +15,6 @@ Slack
 Functions
 ---------
 write_info_to_file(flag, df, filename, path)
-
-get_all_messages_df(source_path, save_path, chs2analyze, usrs_df, settings)
 
 """
 
@@ -117,8 +118,27 @@ class Slack:
     rm_short_msgs(df_msgs, n_char=15)
         Return a dataframe without short messages.
 
-    apply_excel_adjustments(file_path, ws_name, settings)
-        Format the Excel tables as specified in the settings txt file.
+    add_channel_info(channel_path, channel_df)
+        Add "channel", "export_dates" and "parsed_reports_in_channel" to df.
+
+    add_info_of_users_reports(df_all)
+        Get the latest report date and number of messages in the given channel.
+
+    format_parsed_reports(df_all)
+        Select the parsed weekly reports and sort the df by channel.
+
+    format_unparsed_reports(df_all, wr_channel_name)
+        Select the unparsed weekly reports and sort the df by channel.
+
+    format_msgs_with_urls(df, settings)
+        Select the messages that contain URL(s) in df["text"].
+
+    filter_urls(url_list, settings)
+        Select a message's URLs as specified in the settings txt file.
+
+    select_desired_urls(df, settings)
+        Filter-out unwanted URL(s) as specified in the settings txt file.
+
     """
 
     def __init__(self, settings):
@@ -831,32 +851,191 @@ class Slack:
         clean.reset_indices(df)
         return df
 
-    def apply_excel_adjustments(self, file_path, ws_name, settings):
+    def add_channel_info(self, channel_path, channel_df):
         """
-        Format the Excel tables as specified in the settings txt file.
+        Add "channel", "export_dates" and "parsed_reports_in_channel" to df.
+
+        Requires the dataframe to have the column "projects_parsed".
 
         Arguments
         ---------
-        file_path : str
-            Absolute path to the Excel file.
-        ws_name : str
-            Name of the Excel Sheet.
+        channel_path : str
+            Absolute path to the channels directory.
+
+        channel_df : Pandas dataframe
+
+        Returns
+        -------
+        Pandas dataframe
+
+        """
+        file_name = channel_path.split("/")[-1].split(".")[0]
+        channel_name = "_".join(file_name.split("_")[:-3])
+        channel_date = "_".join(file_name.split("_")[-3:])
+
+        df_ = channel_df["projects_parsed"].astype("string")
+        reports_in_channel = f"{len(df_[df_ != '0'])}/{len(channel_df)}"
+        channel_df["channel"] = [channel_name]*len(channel_df)
+        channel_df["export_dates"] = [channel_date]*len(channel_df)
+        channel_df["parsed_reports_in_channel"] = [reports_in_channel]*len(channel_df)
+
+        return channel_df
+
+    def add_info_of_users_reports(self, df_all):
+        """
+        Get the latest report date and number of messages in the given channel.
+
+        Arguments
+        ---------
+        df_all : Pandas dataframe
+
+        Returns
+        -------
+        Pandas dataframe with extra columns "latest_report_date" and
+        "number_msgs_in_channel".
+
+        """
+        users = df_all["user"].unique()
+        for user in users:
+            user_df = df_all[df_all["user"] == user].sort_values(
+                by="msg_date", inplace=False, ignore_index=True
+                )
+            latest_report_date = user_df["msg_date"].to_list()[-1]
+            user_df["latest_report_date"] = [latest_report_date]*len(user_df)
+            user_df["number_msgs_in_channel"] = len(user_df)
+            if user == users[0]:
+                df_out = user_df.copy()
+            else:
+                df_out = pd.concat([df_out, user_df],
+                                   axis=0, ignore_index=False)
+
+        return df_out
+
+    def format_parsed_reports(self, df_all):
+        """
+        Select the parsed weekly reports and sort the df by channel.
+
+        Arguments
+        ---------
+        df_all : Pandas dataframe
+            Pandas dataframe with all the messages.
+
+        Returns
+        -------
+        Pandas dataframe containing messages parsed as "weekly reports".
+
+
+        """
+        df_p = df_all.copy()
+        df_p = df_p[df_p["projects_parsed"] != "0"]
+        df_p = df_p.reset_index().drop(columns=["index"])
+        df_p.sort_values(by=["channel", "display_name", "msg_date"],
+                         inplace=True, ignore_index=True)
+        return df_p
+
+    def format_unparsed_reports(self, df_all, wr_channel_name):
+        """
+        Select the unparsed weekly reports and sort the df by channel.
+
+        Arguments
+        ---------
+        df_all : Pandas dataframe
+            Pandas dataframe with all the messages.
+        wr_ch_name : str
+            Channel name of the given weekly report.
+
+        Returns
+        -------
+        Pandas dataframe containing messages NOT parsed as "weekly report".
+
+        """
+        df_np = df_all.copy()
+        df_np = df_np[df_np["channel"] == wr_channel_name]
+        df_np = df_np[df_np["projects_parsed"] == "0"]
+        df_np = df_np[df_np["msg_id"] != "channel_join"]
+        df_np = df_np[df_np["is_bot"] != True]
+        df_np = df_np[df_np["type"] != "thread"]
+        df_np = df_np.reset_index().drop(columns=["index"])
+        df_np.sort_values(by=["channel", "display_name", "msg_date"],
+                          inplace=True, ignore_index=True)
+        return df_np
+
+    def format_msgs_with_urls(self, df, settings):
+        """
+        Select the messages that contain URL(s) in df["text"].
+
+        Arguments
+        ---------
+        df : Pandas dataframe
+
         settings : parser.Parser(txt_path)
             Parsed variables from the settings txt file.
 
+        Returns
+        -------
+        Pandas dataframe
+
         """
-        xl = excel.ExcelFormat(file_path, settings)
-        ws = xl.get_sheet(ws_name)
-        xl.set_cell_width(ws, settings.get("column_widths"))
-        xl.set_allignment(ws, "top")
-        xl.format_first_row(ws, settings.get("header_row"))
-        for cc in settings.get("font_color_in_column"):
-            xl.set_font_color_in_column(ws, cc)
-        for highlight in settings.get("highlights"):
-            xl.format_highlight(ws, highlight)
-        for column in settings.get("text_type_cols"):
-            xl.format_text_cells(ws, column)
-        xl.save_changes()
+        df_p = df.copy()
+        df_p = df_p[df_p['URL(s)'] != settings.get('missing_value')]
+        df_p = df_p.reset_index().drop(columns=['index'])
+        df_p.sort_values(by=['channel', 'display_name', 'msg_date'],
+                         inplace=True, ignore_index=True)
+        return df_p
+
+    def filter_urls(self, url_list, settings):
+        """
+        Select a message's URLs as specified in the settings txt file.
+
+        Arguments
+        ---------
+        url_list : list
+
+        settings : parser.Parser(txt_path)
+            Parsed variables from the settings txt file.
+
+        Returns
+        -------
+        List URL(s) from a Slack message as specified in the settings txt file.
+
+        """
+        out = []
+        for url in url_list:
+
+            for url_exp in settings.get('urls_to_show'):
+                if url_exp in url:
+                    out.append(url.lstrip(' ').rstrip(' '))
+
+        return out
+
+    def select_desired_urls(self, df, settings):
+        """
+        Filter-out unwanted URL(s) as specified in the settings txt file.
+
+        Arguments
+        ---------
+        df : Pandas dataframe
+
+        settings : parser.Parser(txt_path)
+            Parsed variables from the settings txt file.
+
+        Returns
+        -------
+        Pandas dataframe
+
+        """
+        indices2drop = []
+        for i in range(len(df)):
+
+            urls = df.at[i, "URL(s)"].split("; ")
+            filtered_urls = self.filter_urls(urls, settings)
+            if filtered_urls == []:
+                indices2drop.append(i)
+            else:
+                df.at[i, "URL(s)"] = '; '.join(filtered_urls)
+
+        indices2drop = list(set(indices2drop))
+        return df.drop(indices2drop, axis=0, inplace=False)
 
 
 # #############################################################################
@@ -882,136 +1061,3 @@ def write_info_to_file(flag, df, filename, path):
     if flag is True:
         df.to_excel(f"{path}/{filename}{'.xlsx'}", index=False)
         print(datetime.now().time(), f"Wrote file {filename}.xlsx")
-
-
-def get_all_messages_df(source_path, save_path,
-                        chs2analyze, usrs_df, settings):
-    """
-    Write Excel files from dataframes containing all the Slack messages.
-
-    Arguments
-    ---------
-    source_path : str
-        Path to the source directory.
-    save_path : str
-        Path to the destination directory.
-    chs2analyze : list
-        List of Slack channels to be analyzed.
-    usrs_df : Pandas dataframe
-        Dataframe containing the user's information.
-    settings : parser.Parser(txt_path)
-        Parsed variables from the settings txt file.
-
-    Returns
-    -------
-    Curated Pandas dataframe with all the messages in the specified Slack
-    channel(s).
-
-    """
-    # Create an instance of the class Slack to carry over the input variables
-    # and use its custom methods:
-    s = Slack(settings)
-
-    # Iterate over channel's folders:
-    for i_channel, ch in enumerate(chs2analyze):
-
-        print(ch, datetime.now().time())
-
-        # Collect all the current_channel's messages in ch_msgs_df:
-        ch_msgs_df = s.get_ch_msgs_df(source_path, ch)
-        print(f"{ch} Collected channel msgs from the json files")
-        if len(ch_msgs_df) < 1:
-            print(
-                "for the folder ", ch,
-                "messages_number= ", len(ch_msgs_df),
-                "there is no channel's folder", "\n"
-                )
-            continue
-
-        # Collect all the users in the current channel:
-        ch_usrs_df = s.get_ch_usrs_df(ch_msgs_df, usrs_df)
-        print(f"{ch} Collected users in current channel")
-
-        # Use ch_usrs_df to fill in the user's information in ch_msgs_df:
-        s.add_usrs_info_to_msgs_df(ch_msgs_df, ch_usrs_df)
-        print(f"{ch} Included the users info on ch_msgs_df")
-
-        # Replace user and team identifiers with their display_names whenever
-        # present in a message:
-        s.usr_id_to_name(ch_msgs_df, ch_usrs_df)
-        s.ch_id_to_name(ch_msgs_df)
-        s.parent_id_to_name(ch_msgs_df, ch_usrs_df)
-        print(f"{ch} User's id replaced by their names")
-
-        # Extract hyperlinks from messages, if present (extracted as a list;
-        # edit if needed):
-        s.extract_urls(ch_msgs_df)
-        print(f"{ch} URLs extracted from messages")
-
-        # Change format of the time in seconds to a date in the CST time-zone:
-        s.ts_to_tz(ch_msgs_df, "ts", "msg_date")
-        s.ts_to_tz(ch_msgs_df, "json_mod_ts", "json_mod_date")
-        s.ts_to_tz(ch_msgs_df, "ts_latest_reply", "latest_reply_date")
-        s.ts_to_tz(ch_msgs_df, "ts_thread", "thread_date")
-        print(f"{ch} Formated the dates and times")
-
-        # Identify if text has emojis:
-        ch_msgs_df = s.id_emojis_in_text(ch_msgs_df)
-        print(f"{ch} Checked for emojis in messages")
-
-        # Parse for check-in messages:
-        ch_msgs_df = checkins.parse_reports(ch_msgs_df, settings)
-
-        ch_msgs_df = s.drop_extra_unparsed_rows(ch_msgs_df)
-        print(f"{ch} Parsed check-in messages")
-
-        # Build df with pruned messages:
-        sel_msgs_df = s.rm_automatic_msgs(ch_msgs_df)
-        sel_msgs_df = s.remove_emojis_in_text(sel_msgs_df)
-        sel_msgs_df = s.rm_short_msgs(sel_msgs_df, n_char=15)
-        print(f"{ch} Built df with selected rows")
-
-        # Build df with discarded messages (after being pruned):
-        auto_msgs = s.get_automatic_msgs(ch_msgs_df)
-        short_msgs = s.get_short_msgs(ch_msgs_df, n_char=15)
-        dis_msgs = pd.concat([auto_msgs, short_msgs], axis=0, ignore_index=False)
-        dis_msgs.sort_values(by="msg_date", inplace=True, ignore_index=True)
-        print(f"{ch} Built df with filtered-out messages")
-
-        # Rearrange columns:
-        column_names_order = s.settings.get("columns_order")
-        ch_msgs_df = ch_msgs_df[column_names_order]
-        sel_msgs_df = sel_msgs_df[column_names_order]
-        dis_msgs = dis_msgs[column_names_order]
-        print(f"{ch} Rearranged columns")
-
-        # Sort rows by msg_date:
-        ch_msgs_df.sort_values(by="msg_date", inplace=True, ignore_index=True)
-        sel_msgs_df.sort_values(by="msg_date", inplace=True, ignore_index=True)
-        dis_msgs.sort_values(by="msg_date", inplace=True, ignore_index=True)
-        print(f"{ch} Sorted rows by msg_date")
-
-        # Write ch_msgs_df to a .xlsx file:
-        msgs_mindate = ch_msgs_df["msg_date"].min().split(" ")[0]
-        msgs_maxdate = ch_msgs_df["msg_date"].max().split(" ")[0]
-        ch = ch.replace(" ", "-")
-        ch_msgs_filename = f"{ch}_{msgs_mindate}_to_{msgs_maxdate}"
-        ch_msgs_folder_path = f"{save_path}/{ch_msgs_filename}.xlsx"
-        path = f"{ch_msgs_folder_path}"
-        with pd.ExcelWriter(path, engine="openpyxl") as writer:
-            sel_msgs_df.to_excel(writer, index=False,
-                                 sheet_name="Relevant messages")
-            dis_msgs.to_excel(writer, index=False,
-                              sheet_name="Filtered-out messages")
-            ch_msgs_df.to_excel(writer, index=False,
-                                sheet_name="All messages")
-
-        # Apply formatting of Excel worksheets:
-        s.apply_excel_adjustments(path, "All messages", s.settings)
-        s.apply_excel_adjustments(path, "Relevant messages", s.settings)
-        s.apply_excel_adjustments(path, "Filtered-out messages", s.settings)
-        print(f"{ch} Wrote curated messages to Excel \n")
-
-    print(datetime.now().time(), "Done")
-
-    return ch_msgs_df
