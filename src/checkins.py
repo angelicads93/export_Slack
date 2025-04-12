@@ -12,7 +12,7 @@ CheckIns
 Functions
 ---------
 parse_reports(df, settings)
-    Return a dataframe with the parsed text checkin messages.
+    Return a dataframe with the parsed text check-in messages.
 
 """
 
@@ -22,6 +22,10 @@ import numpy as np
 import clean
 
 
+# NOTE: Maybe there's a better way of doing it, but the class was defined
+# to carry on the variables defined by the user in the txt files without
+# needing to add them as arguments to the various functions explicitly. They
+# are instead treated as attributes of the class.
 class CheckIns:
     """
     Class to handle information on the Slack channels and users.
@@ -43,13 +47,13 @@ class CheckIns:
     Methods
     -------
     match_to_category(line, category_name)
-        Check if a text's line contains the definition of a checkin category.
+        Check if a text's line contains the definition of a check-in category.
 
     get_idx_of_lines_with_cat(text)
-        Identify checkin categories in the text and their line location.
+        Identify check-in categories in the text and their line location.
 
     group_lines(text, indices_start_of_category)
-        Group lines on checkins message by categories.
+        Group lines on check-ins message by categories.
 
     count_idx_kw(category_names, keyword)
         Return an integer with the number of identified projects in the text.
@@ -58,7 +62,7 @@ class CheckIns:
         Identify the indices of the df whose text contains the given label.
 
     extract_answers(blocks_list)
-        Format the answer to each identified category in the checkin text.
+        Format the answer to each identified category in the check-in text.
 
     create_empty_df_with_cats(n_rows, cols)
         Return an empty dataframe with n_rows and given columns.
@@ -70,7 +74,7 @@ class CheckIns:
         Count keywords_parsed as fractions of total keywords.
 
     checkin_categories_to_df(df, category_names, answers)
-        Fill in the dataframe with the parsed checkin messages.
+        Fill in the dataframe with the parsed check-in messages.
 
     id_sample_msg(df)
         Add "sample" in the column "projects_parsed" if msg is a sample report.
@@ -87,7 +91,7 @@ class CheckIns:
 
     def match_to_category(self, line, category_name):
         """
-        Check if a text's line contains the definition of a checkin category.
+        Check if a text's line contains the definition of a check-in category.
 
         Returns True if the category_name matches the text before ":" in
         the given line. Using "==" instead of "in" prevents "roadblocks" to
@@ -100,7 +104,7 @@ class CheckIns:
             A line in the weekly report text.
 
         category_name : str
-            Name of the checkin category.
+            Name of the check-in category.
 
         Returns
         -------
@@ -108,7 +112,7 @@ class CheckIns:
 
         """
         # Prepare line
-        # Change all cases to lowercases and remove "*" (bold text):
+        # Change all cases to lowercase and remove "*" (bold text):
         line = line.lower().replace("*", "")
         # Remove unwanted symbols and numbers (often used in bullet list):
         line = line.lstrip("*-_•.◦ 1234567890").rstrip("*-_•.◦ 1234567890")
@@ -117,12 +121,12 @@ class CheckIns:
         line = line.replace(" ", "").replace("_", "")
         # Initialize boolean output as False:
         out = False
-        # Check if line contains ":" needed to define a keyword:
+        # Check if a line contains ":" needed to define a keyword:
         if ":" in line:
             for keyword in self.keywords_dictionary[category_name]:
                 keyword_ = keyword.lower().replace(" ", "")
                 line_ = (line.split(":")[0]).lower().replace(" ", "")
-                # Check if line contains a keyword in the checkin category:
+                # Check if a line contains a keyword in the check-in category:
                 if keyword_ == line_:
                     out = True
                     break
@@ -130,12 +134,12 @@ class CheckIns:
 
     def get_idx_of_lines_with_cat(self, text):
         """
-        Identify checkin categories in the text and their line location.
+        Identify check-in categories in the text and their line location.
 
         Arguments
         ---------
         text : str
-           Text from the checkin message.
+           Text from the check-in message.
 
         Returns
         -------
@@ -143,7 +147,7 @@ class CheckIns:
             List with the line number of the lines where a keyword was defined.
 
         category_names : list
-            List with the name of the categories identified in
+            List the names of the categories identified in
             indices_start_of_category (keeping the order of the list).
 
         """
@@ -163,21 +167,21 @@ class CheckIns:
 
     def group_lines(self, text, indices_start_of_category):
         """
-        Group lines on checkins message by categories.
+        Group lines on check-ins message by categories.
 
         Arguments
         ---------
         text : str
-            Text from the checkin message.
+            Text from the check-in message.
 
         indices_start_of_category : list
-            List with the line number of lines containing a checkin keyword.
+            List with the line number of lines containing a check-in keyword.
             Output of the method get_idx_of_lines_with_cat(text).
 
         Returns
         -------
         blocks : list
-            List of list, where each elements collects the content (1 or more
+            List of lists, where each element collects the content (1 or more
             lines) for each category in the text.
 
         """
@@ -190,7 +194,7 @@ class CheckIns:
             # Identify the first and last line defining the current category:
             begin = indices_start_of_category[i]
             end = indices_start_of_category[i+1]
-            # Add the lines into new entry in the output list:
+            # Add the lines into a new entry in the output list:
             blocks.append(text_to_lines[begin:end])
         # Add the last category to the output list:
         blocks.append(text_to_lines[end:])
@@ -201,8 +205,8 @@ class CheckIns:
         """
         Return an integer with the number of identified projects in the text.
 
-        A project is usually identified throught the label "Project name:",
-        independently of lowercase or uppercase letters. It most contain ":".
+        A project is usually identified through the label "Project name:",
+        independent of lowercase or uppercase letters. It must contain ":".
 
         Arguments
         ---------
@@ -210,12 +214,12 @@ class CheckIns:
             Name of the category.
 
         keyword : str
-            Keyword identifying the checkin category.
+            Keyword identifying the check-in category.
 
         Returns
         -------
         counter : int
-            Number of times the given keyword was identified in the checkin
+            Number of times the given keyword was identified in the check-in
             text.
 
         """
@@ -254,26 +258,26 @@ class CheckIns:
             for line in text.splitlines():
                 line = line.lower().lstrip("*-•. ").rstrip("*-•. ")
                 line = line.replace("*", "")
-                # Check if the given label is in the current checkin text:
+                # Check if the given label is in the current check-in text:
                 if label in line:
                     indices.append(i)
         return indices
 
     def extract_answers(self, blocks_list):
         """
-        Format the answer to each identified category in the checkin text.
+        Format the answer to each identified category in the check-in text.
 
         Arguments
         ---------
         blocks_list : list
-            List with the lines of the checkin text grouped by category.
+            List with the lines of the check-in text grouped by category.
 
         Returns
         -------
         answers : list
             List of strings, where each string corresponds to the
-            "answer" of a given category. It removes the category_name label,
-            and combined multiple lines if necessary.
+            "answer" of a given category. It removes the category_name label
+            and combines multiple lines if necessary.
 
         """
         # Initialize the output list:
@@ -284,7 +288,7 @@ class CheckIns:
             for line in block:
                 # Initialize the line_matches boolean to False:
                 line_matches = False
-                # If line contains a keyworkd, add to "ans" the text after
+                # If line contains a keyword, add to "ans" the text after
                 # ":" and remove unwanted symbols:
                 for category in self.all_keywords:
                     if self.match_to_category(line, category) is True:
@@ -297,7 +301,7 @@ class CheckIns:
                 # If line doesn't contain a keyword, add the line as it is:
                 if line_matches is False:
                     ans += line
-            # Check that answer is not being parsed as missing_value:
+            # Check that the answer is not being parsed as missing_value:
             if ans.lower() == "none":
                 ans = "none "
             elif ans.lower() == "n/a":
@@ -312,7 +316,7 @@ class CheckIns:
         """
         Return an empty dataframe with n_rows and given columns.
 
-        The column index_ is for internal development of the code. It can be
+        The column index_ is for the internal development of the code. It can be
         removed at the end.
 
         Arguments
@@ -321,7 +325,7 @@ class CheckIns:
             Number of empty rows to include when defining the Pandas dataframe.
 
         cols : list
-            List with the name of the dataframe columns.
+            List the names of the dataframe columns.
 
         Returns
         -------
@@ -340,8 +344,8 @@ class CheckIns:
         """
         Add "sample" in the column "projects_parsed" if msg is a sample report.
 
-        A "sample" messages is a message that contain the instructions of how
-        to properly write a check-in report.
+        A "sample" message is a message that contains the instructions of how
+        to correctly write a check-in report.
 
         Arguments
         ---------
@@ -371,10 +375,10 @@ class CheckIns:
         Arguments
         ---------
         projs_parsed : int
-            Number of projects successfully parsed in the checkin text.
+            Number of projects successfully parsed in the check-in text.
 
         idx : int
-            Dataframe index of the current checkin message.
+            Dataframe index of the current check-in message.
 
         sample_msg_idx : list
             Indices of messages that are "sample" messages.
@@ -383,14 +387,14 @@ class CheckIns:
         -------
         projects_parsed_str : str
             String with either "sample" or a list with the number of projects
-            parsed as a fraction of the total projects in the checkin message.
+            parsed as a fraction of the total projects in the check-in message.
 
         """
         projects_parsed_str = ""
         # Check in the checkin is a "sample" message:
         if idx in sample_msg_idx:
             projects_parsed_str = "sample"
-        # Edit string as a fraction of the total projects in message:
+        # Edit string as a fraction of the total projects in a message:
         if projs_parsed == 0:
             projects_parsed_str = str(0)
         elif projs_parsed == 1:
@@ -409,16 +413,16 @@ class CheckIns:
         Arguments
         ---------
         projs_parsed : int
-            Number of projects successfully parsed in the checkin text.
+            Number of projects successfully parsed in the check-in text.
 
         category_names : str
-            Dataframe index of the current checkin message.
+            Dataframe index of the current check-in message.
 
         Returns
         -------
         kws : str
             String with the numbers of keywords parsed as a fraction of the
-            total keywords expected in the checkin message.
+            total keywords expected in the check-in message.
 
         """
         # Initialize output list:
@@ -442,12 +446,12 @@ class CheckIns:
 
     def checkin_categories_to_df(self, df, category_names, answers):
         """
-        Fill in the dataframe with the parsed checkin messages.
+        Fill in the dataframe with the parsed check-in messages.
 
         Take the empty dataframe created with the function
         "create_empty_df_with_cats(n_rows)" and fills the cells with the
         "answers" to the categories that were correctly identified in the text.
-        Multiple projects are stored in multiple rows, while preserving the
+        Multiple projects are stored in multiple rows while preserving the
         identification information of the message.
 
         Arguments
@@ -455,7 +459,7 @@ class CheckIns:
         df : Pandas dataframe
 
         category_name : list
-            Name of the checkin category.
+            Name of the check-in category.
 
         answers : list
             List of strings, where each string corresponds to the
@@ -474,11 +478,13 @@ class CheckIns:
         return df
 
 
+
+
 def parse_reports(df, settings):
     """
-    Return a dataframe with the parsed text checkin messages.
+    Return a dataframe with the parsed text check-in messages.
 
-    Messages with weekly reports of more than one project are splitted in
+    Messages with weekly reports of more than one project are split in
     as many rows as projects in the report.
 
     Arguments
@@ -508,7 +514,7 @@ def parse_reports(df, settings):
         cat_idx, cat_names = ci.get_idx_of_lines_with_cat(df.at[i, "text"])
         projs_parsed = ci.count_idx_kw(cat_names, ci.index_keyword)
 
-        # Create empty df with checkin categories:
+        # Create empty df with check-in categories:
         cols = list(ci.all_keywords) + ["projects_parsed",
                                           "keywords_parsed", "index_"]
         if projs_parsed == 0 or i in sample_msg_idx:
@@ -533,7 +539,7 @@ def parse_reports(df, settings):
         df_i_report = clean.handle_missing_values(df_i_report, ci.missing_value)
 
         # Build the dataframe with the original information and full text.
-        # Rows are dublicated as many times as projects in the checkin msg:
+        # Rows are duplicated as many times as projects in the checkin msg:
         df_i_msg = pd.DataFrame([list(df.loc[i].values)]*len(df_i_report))
         df_i_msg.columns = df.columns
         df_i_msg["index"] = i

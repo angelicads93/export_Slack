@@ -10,9 +10,6 @@ Functions
 replace_empty_space(df, column, missing_value)
     Replace empty-cell with a chosen string for a given column of the df.
 
-replace_NA(df, column, missing_value)
-    Replace NA with a chosen string for a given column of the df.
-
 handle_missing_values(df, missing_value)
     Returns df after replacing NA in all the columns of the a dataframe."
 
@@ -53,31 +50,9 @@ def replace_empty_space(df, column, missing_value):
             df.at[i, column] = missing_value
 
 
-def replace_NA(df, column, missing_value):
-    """
-    Replace NA with a chosen string for a given column of the df.
-
-    Arguments
-    ---------
-    df : Pandas dataframe
-
-    columns : str
-        Name of the column.
-
-    missing_value : str
-        Name to represent missing values in a dataframe.
-
-    Returns
-    -------
-    df : Pandas dataframe
-
-    """
-    df[column] = df[column].fillna(missing_value)
-
-
 def handle_missing_values(df, missing_value):
     """
-    Return df after replacing NA in all the columns of the a dataframe.
+    Return df after replacing NA in all the columns of a dataframe.
 
     Arguments
     ---------

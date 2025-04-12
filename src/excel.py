@@ -58,10 +58,10 @@ class ExcelFormat():
         Add a border to a cell without modifying the previous setting.
 
     draw_vertical_line(ws, draw_vert_line)
-        Draw a vertical at the right of the given column.
+        Draw a vertical line at the right of the given column.
 
     set_allignment(ws, alignment_vertical)
-        Align the text to the left and to the top of their cells.
+        Align the text to the left and the top of their cells.
 
     format_first_row(ws, header_row)
         Format the first row of a given Excel worksheet.
@@ -165,16 +165,16 @@ class ExcelFormat():
             Index of the given row.
 
         columns : list
-            List of column' letters where the highlights should be applied.
+            List of column letters where the highlights should be applied.
 
         cell_color : str
-            Code of the desire color.
+            Code of the desired color.
 
         font_size : int
             Size of the font.
 
         font_bold : bool
-            Wheater the font of the highlighted columns should be bold.
+            Whether the font of the highlighted columns should be bold.
 
         font_horiz_alignment : str
             Type of horizontal alignment of the text ("left", "right", ...).
@@ -215,7 +215,7 @@ class ExcelFormat():
         activate = trigger_dict['activate']
         # If the highlight should be added to the Excel table:
         if activate is True:
-            # Retrieve variabels from the input dictionary:
+            # Retrieve variables from the input dictionary:
             trigger_name = trigger_dict['trigger'][0]
             trigger_condition = trigger_dict['trigger'][1]
             trigger_value = trigger_dict['trigger'][2]
@@ -328,7 +328,7 @@ class ExcelFormat():
 
     def draw_vertical_line(self, ws, draw_vert_line):
         """
-        Draw a vertical at the right of the given column.
+        Draw a vertical line at the right of the given column.
 
         Does not alter the previous border-setting of the cells.
 
@@ -352,10 +352,10 @@ class ExcelFormat():
 
     def set_allignment(self, ws, alignment_vertical):
         """
-        Align the text to the left and to the top of their cells.
+        Align the text to the left and the top of their cells.
 
         It does not alter the first row.
-        Should be applied before any highlights.
+        It should be applied before any highlights.
 
         Arguments
         ---------
