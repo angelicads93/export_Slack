@@ -5,6 +5,14 @@
 
 Python code to export Slack messages from JSON files into Excel databases.
 
+Functions
+---------
+apply_excel_adjustments_msgs(file_path, sheet_name, settings)
+    Format the Excel tables as specified in the settings txt file.
+
+msgs_to_excel(chs, all_users_df, inps, setts)
+    Compile messages in a Slack workspace into Excel workbooks.
+
 """
 import os
 import sys
