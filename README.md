@@ -32,7 +32,7 @@ Contains the various text files necessary to run the multiple analyses. They are
 should be written with Python syntax and conventions, especially for variable definitions, strings, lists and
 dictionaries. Each file is first examined to check that each variable definition is a correct Python command, as
 well as checking that any path or directory exists.
-* [inputs.txt](inputs.txt) and [settings_messages.txt](settings_messages.txt): Input text files for the Python script 'extract_messages.py'.
+* [inputs.txt](inputs.txt) and [settings_messages.txt](settings_messages.txt): Input text files for the Python script `extract_messages.py`.
 * [settings_weekly_reports.txt](settings_weekly_reports.txt): Input text file for the Python script `extract_weekly_reports.py`.
 * [settings_urls.txt](settings_urls.txt): Input text file for the Python script `extract_urls.py`.
 
@@ -53,7 +53,7 @@ Contains the custom Python modules built to target the tasks necessary to comple
 * [checkins.py](src/checkins.py):
   Python module used to parse the Slack messages for weekly reports.
 * [clean.py](src/clean.py):
-  Python module used to clear the format of Pandas dataframes. 
+  Python module used to clean the format of Pandas dataframes. 
 * [excel.py](src/excel.py):
   Python module used to format the Excel workbooks.
 
@@ -86,12 +86,11 @@ Such documentation can be conveniently accessed by hovering over the function's 
   Notice that this information is precisely what is contained in the `inputs.txt` file when executing the `extract_messages.py` through VScode.
   The Python script `GUI_tkinter.py` then generates the corresponding text file with the information provided by the user through the visual interface and
   proceeds to execute the main routine. The variables of the text file `settings_messages.txt` are not prompted
-  to the user of the visual interface, but instead, the values used are their default ones. This is the main reason why `inputs.txt` and `settings_messages.txt`
-  are two different files. In the present version of export_Slack, the visual interface does not support the generation of Excel workbooks
-  with the compilation of the weekly reports or the URLs found in the messages. 
+  to the user of the visual interface, but instead, the values used are their default ones. In the present version of export_Slack,
+  the visual interface does not support the generation of Excel workbooks with the compilation of the weekly reports or the URLs found in the messages. 
 
   The Python script `GUI_tkinter.py` can be used to generate a standalone executable file suitable for Windows operating system.
-  To generate the executable file, first ensure that the virtual environment is activated, then run the following command:
+  To generate the executable file, first ensure that the virtual environment is activated (see more on **dependencies**), then run the following command:
   ```{script}
   cd GUI
   pyinstaller --one-file --windowed GUI_tkinter.py
@@ -99,7 +98,7 @@ Such documentation can be conveniently accessed by hovering over the function's 
   The option `--one-file` bundles all the dependencies into a single executable file. And the option `--windowed` prevents a terminal window
   from popping when running the executable file. The output of this command is the directory `tkGUI/`.
   
-* [tkGUI](GUI/tkGUI)
+* [tkGUI](GUI/tkGUI):
   Directory created from running the `pyinstaller` command above.
   
 * [slack2excel.exe](GUI/slack2excel.exe):
