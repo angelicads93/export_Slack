@@ -69,10 +69,6 @@ cd .\VScode\
   ```{script}
   python .\extract_messages.py --inputs_file_path="..\inputs.txt" --settings_file_path="..\settings_messages.txt"
   ```
-<p align="center">
-  <img src="../images/main.png" alt="Execute main" style="width:46%"; height:auto>
-  <img src="../images/done.png" alt="Done" style="width:46%"; height:auto>
-</p>
 
 * Once the Excel file(s) of the Slack channel(s) have been generated, you may compile the parsed weekly reports from all the channels in a new Excel file. First, specify your formatting choices in the file `settings_messages.txt`. Then, run in your terminal
   ```{script}
