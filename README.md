@@ -29,15 +29,14 @@ for Windows users. A detailed documentation on how to use this repository in VSc
 ### 2. User's input files
 
 Contains the various text files necessary to run the multiple analyses. They are ".txt" files, however, their content
-should be written with Python syntax and conventions, especially for variable definitions, strings, lists and
-dictionaries. Each file is first examined to check that each variable definition is a correct Python command, as
-well as checking that any path or directory exists.
+should be written with Python syntax and conventions, especially for variable definitions, strings, lists, and
+dictionaries. Each file is first examined to check that each variable definition is a correct Python command and that any path or directory exists.
 * [inputs.txt](inputs.txt) and [settings_messages.txt](settings_messages.txt): Input text files for the Python script `extract_messages.py`.
 * [settings_weekly_reports.txt](settings_weekly_reports.txt): Input text file for the Python script `extract_weekly_reports.py`.
 * [settings_urls.txt](settings_urls.txt): Input text file for the Python script `extract_urls.py`.
 
-All the input files are located in the main repository directory (`export_Slack/`), such that they are equally accessible
-to the various ways of executing the analyses (VScode, JupyterNotebook or GUI). More details on the variables defined in each of these
+All the input files are located in the main repository directory (`export_Slack/`), so they are equally accessible
+to the various ways of executing the analyses (VScode, JupyterNotebook, or GUI). More details on the variables defined in these
 input files are provided later.
 
 ### 2. src/
@@ -63,16 +62,14 @@ and their classes and functions are accessed through the module's namespace. For
 import checkins
 df_msgs_parsed = checkins.parse_reports(df_msgs, setts)
 ```
-To inspect/debug a line of code on one of the main Python scripts, first identify the custom Python module containing the function, and then
+To inspect/debug a line of code on one of the main Python scripts, first identify the custom Python module containing the function and then
 inspect the definition of the function in the Python module (for example, on `checkins.py`). Each class and function in the custom Python
-modules has its docstring documentation, containing the description of the function, parameters and what does the function returns.
+modules has its docstring documentation, containing the description of the function, parameters, and what the function returns.
 Such documentation can be conveniently accessed by hovering over the function's name from your VScode interface. 
 
 ### 3. JupyterNotebook/
- Contains the Jupyter Notebook [main.ipynb](JupyterNotebook/main.ipynb) that performs the analysis of exporting all the Slack messages into Excel workbooks (it is
- the Jupyter notebook equivalent of `extract_messages.py`). 
+ This file contains the Jupyter Notebook [export_slack.ipynb](JupyterNotebook/export_slack.ipynb) that performs the various analyses.
  This variant requires downloading the code and setting up a virtual environment, on which the notebook provides detailed instructions.
- In the present version of export_Slack, the Jupyter Notebook variant does not support the generation of Excel workbooks with the compilation of the weekly reports or the URLs found in the messages.
 
 ### 4. GUI/
 * [GUI_tkinter.py](GUI/GUI_tkinter.py):
@@ -89,7 +86,7 @@ Such documentation can be conveniently accessed by hovering over the function's 
   to the user of the visual interface, but instead, the values used are their default ones. In the present version of export_Slack,
   the visual interface does not support the generation of Excel workbooks with the compilation of the weekly reports or the URLs found in the messages. 
 
-  The Python script `GUI_tkinter.py` can be used to generate a standalone executable file suitable for Windows operating system.
+  The Python script `GUI_tkinter.py` can generate a standalone executable file suitable for the Windows operating system.
   To generate the executable file, first ensure that the virtual environment is activated (see more on **dependencies**), then run the following command:
   ```{script}
   cd GUI
@@ -123,7 +120,7 @@ Such documentation can be conveniently accessed by hovering over the function's 
   deactivate
   ```
 
-  If you created the virtual environment and installed the dependencies in a previous session, and you want to reuse it, you just need to
+  If you created the virtual environment and installed the dependencies in a previous session, and you want to reuse it, you need to
   reactivated with
   ```{script}
   .\venv\Script\activate
@@ -232,7 +229,7 @@ cd VScode
 python extract_messages.py --inputs_file_path='../inputs.txt' --settings_file_path='../settings_messages.txt'
 
 ```
-or through Visual Studio Code ([see documentation](VScode)), Jupyter Notebook ([main.ipynb](JupyterNotebook/main.ipynb)), or
+or through Visual Studio Code ([see documentation](VScode)), Jupyter Notebook ([export_slack.ipynb](JupyterNotebook/export_slack.ipynb)), or
 the executable Windows application ([slac2excel.exe](GUI/slack2excel.exe)).
 
 ### 2. Excel database with compiled weekly reports
