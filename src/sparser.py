@@ -310,16 +310,20 @@ def check_path_in_user_file(file_name, var_name, var_value, kill=True):
 
     """
     flag = True
-    if os.path.exists(var_value) is False:
+    if var_value is None:
+        print(f'ERROR: Please make sure that your variable is called '
+                  + f' "{var_name}" in the file "{file_name}".')
+        sys.exit()
+    elif os.path.exists(var_value) is False:
         flag = False
         if kill is True:
             print(f"WARNING: Path {var_value} does not exists." + "\n"
                   + "          Please review your input for the variable"
-                  + f" {var_name} in {file_name}.")
+                  + f' "{var_name}" in the file "{file_name}".')
         else:
             print(f"ERROR: Path {var_value} does not exists." + "\n"
                   + "       Please review your input for the variable"
-                  + f" {var_name} in {file_name}.")
+                  + f' "{var_name}" in the file "{file_name}".')
             sys.exit()
     else:
         print(f'Verified that path "{var_value}" exists.')
