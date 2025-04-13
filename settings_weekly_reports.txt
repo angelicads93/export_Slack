@@ -8,12 +8,12 @@ missing_value = "n/d"
 # ##################################
 #
 # 0. Path where the exported JSON files are (as a Python string):
-jsons_source_path = "/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/"
-#jsons_source_path = r"C:\Users\angel\OneDrive\Documents\RebeccaEverleneTrust\RET_source\Jan_1_2025-Jan_31_2025\"
+#jsons_source_path = "/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/"
+jsons_source_path = r"C:\Users\angel\OneDrive\Documents\RebeccaEverleneTrust\RET_source\Jan_1_2025-Jan_31_2025\"
 #
 # 1. Path where the exported Excel files are (as a Python string):
-excel_channels_path = "/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/_JSONs_converted"
-#excel_channels_path = r"C:\Users\angel\OneDrive\Documents\RebeccaEverleneTrust\RET_source\Jan_1_2025-Jan_31_2025\_JSONs_converted"
+#excel_channels_path = "/home/agds/Documents/RET/Source/Jan_1_2025_to_Jan_31_2025/_JSONs_converted"
+excel_channels_path = r"C:\Users\angel\OneDrive\Documents\RebeccaEverleneTrust\RET_source\Jan_1_2025-Jan_31_2025\_JSONs_converted"
 #
 # 2. Name of the Slack channel dedicated to the weekly reports (as a Python string):
 reports_channel_name = "think-biver-weekly-checkins"
@@ -22,8 +22,8 @@ reports_channel_name = "think-biver-weekly-checkins"
 compilation_reports_file_name = "test_reports_v4.xlsx"
 #
 # 4. Path where the file compilation_reports_file_path will be saved (as a Python string):
-compilation_reports_path = r"/home/agds/Desktop"
-#compilation_reports_path = r"C:\Users\angel\Desktop"
+#compilation_reports_path = r"/home/agds/Desktop"
+compilation_reports_path = r"C:\Users\angel\Desktop"
 
 
 
