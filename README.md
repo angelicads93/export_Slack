@@ -286,7 +286,7 @@ workbook. The columns displayed are:
 * msg_date: Date when the message was sent (e.g. 2025-01-25 18:13:46).
 * channel: Name of the Slack channel.
 
-### 3.1 Provide your inputs
+#### 3.1 Provide your inputs
 You must first provide the information prompted in the file `settings_urls.txt`.
 Most of the variables are common to the variables in the SETTINGS_MESSAGES 
 table above, except for:
