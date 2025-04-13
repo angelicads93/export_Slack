@@ -23,7 +23,7 @@ urls_to_show = ["docs.google.com", "figma.com"]
 compilation_urls_file_name = "urls_2.xlsx"
 #
 # 4. Path where the file compilation_reports_file_path will be saved (as a Python string):
-compilation_reports_path = "/home/agds/Desktop"
+compilation_urls_path = "/home/agds/Desktop"
 
 
 
