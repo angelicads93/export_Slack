@@ -13,7 +13,6 @@ collected in the Excel databases.
 
 ## Repository Content
 
-
 ### 1. VScode
 
 Contains the main Python scripts to perform the various analyses:
@@ -86,10 +85,10 @@ Such documentation can be conveniently accessed by hovering over the function's 
 
   Notice that this information is precisely what is contained in the `inputs.txt` file when executing the `extract_messages.py` through VScode.
   The Python script `GUI_tkinter.py` then generates the corresponding text file with the information provided by the user through the visual interface and
-  proceeds to execute the main routine (as coded in `extract_messages.py`). The variables of the text file `settings_messages.py` are not prompted
-  to the user of the visual interface, but instead, the values used are their default ones. This is the main reason why `inputs.py` and `settings_messages.py`
+  proceeds to execute the main routine. The variables of the text file `settings_messages.txt` are not prompted
+  to the user of the visual interface, but instead, the values used are their default ones. This is the main reason why `inputs.txt` and `settings_messages.txt`
   are two different files. In the present version of export_Slack, the visual interface does not support the generation of Excel workbooks
-  with the compilation of the weekly reports or the URLs found in the messages.
+  with the compilation of the weekly reports or the URLs found in the messages. 
 
   The Python script `GUI_tkinter.py` can be used to generate a standalone executable file suitable for Windows operating system.
   To generate the executable file, first ensure that the virtual environment is activated, then run the following command:
