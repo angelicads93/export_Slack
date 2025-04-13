@@ -51,8 +51,8 @@
 </p>
 
 #### To specify the conditions of the analysis:
-* From your explorer tab, open the files `inputs.py` and `settings_messages.py`.
-* Specify your choices. Among your inputs, you would need to indicate the absolute path to the directories where the source information is and the absolute path where you wish to save the output of this analysis. If you are working from Windows, you can obtain the absolute path of a directory by first using Windows File Explorer to navigate to the desired folder, right-click on it, select "Copy as path" and paste this absolute path into the corresponding entry of the `inputs.py` file.
+* From your explorer tab, open the files `inputs.txt` and `settings_messages.txt`.
+* Specify your choices. Among your inputs, you would need to indicate the absolute path to the directories where the source information is and the absolute path where you wish to save the output of this analysis. If you are working from Windows, you can obtain the absolute path of a directory by first using Windows File Explorer to navigate to the desired folder, right-click on it, select "Copy as path" and paste this absolute path into the corresponding entry of the `inputs.txt` file.
 * Save the changes.
 
 #### To run the analysis:
@@ -67,16 +67,20 @@ cd .\VScode\
 
 * To generate the Excel files from the Slack channels, run in your terminal
   ```{script}
-  python .\main.py --inputs_file_path="..\inputs.py" --settings_file_path="..\settings_messages.py"
+  python .\extract_messages.py --inputs_file_path="..\inputs.txt" --settings_file_path="..\settings_messages.txt"
   ```
 <p align="center">
   <img src="../images/main.png" alt="Execute main" style="width:46%"; height:auto>
   <img src="../images/done.png" alt="Done" style="width:46%"; height:auto>
 </p>
 
-* Once the Excel file(s) of the Slack channel(s) have been generated, you have the option to compile the parsed weekly reports from all the channels in a new Excel file. First specify your formatting choices in the file `settings_stats.py`. Then, run in your terminal
+* Once the Excel file(s) of the Slack channel(s) have been generated, you may compile the parsed weekly reports from all the channels in a new Excel file. First, specify your formatting choices in the file `settings_messages.txt`. Then, run in your terminal
   ```{script}
-  python .\stats.py --settings_file_path="..\settings_stats.py"
+  python .\extract_weekly_reports.py --settings_file_path="..\settings_weekly_reports.txt"
+  ```
+* Furthermore, to generate an Excel file with a compilation of all the messages containing URL(s) in their text, first specify your formatting choices in the file `settings_urls.txt`, and then, run in your terminal
+  ```{script}
+  python .\extract_urls.py --settings_file_path="..\settings_urls.txt"
   ```
 
 After you have finished using exportSlack, you can deactivate the virtual environment by running the following command in the terminal,
