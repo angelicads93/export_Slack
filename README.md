@@ -112,6 +112,27 @@ Such documentation can be conveniently accessed by hovering over the function's 
 ### 5. dependencies/
 * [requirements.txt](dependencies/requirements.txt):
   Text file containing the list of required Python libraries. This file is used to install the specified libraries in a virtual environment.
+
+  To create a Windows virtual environment for the first time, run the following commands in your terminal:
+  ```{script}
+  python -m venv venv
+  .\venv\Script\activate
+  pip install -r dependencies\requirements.txt
+  ```
+
+  To deactivate your virtual environment once you have finished working on it, run the command:
+  ```{script}
+  deactivate
+  ```
+
+  If you created the virtual environment and installed the dependencies in a previous session, and you want to reuse it, you just need to
+  reactivated with
+  ```{script}
+  .\venv\Script\activate
+  ```
+
+
+  
 * [setup_venv_windows.bat](dependencies/setup_venv_windows.bat) and [setup_venv_linux.sh](dependencies/setup_venv_linux.sh):
   Windows and Linux files with the sequence of the command-line instructions necessary to create and activate a virtual environment and to
   install the required Python libraries from `requirements.txt`. If used, they should be executed from the main repository path `export_Slack/`.
